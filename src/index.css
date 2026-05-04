@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+/* ─── Theme tokens ───────────────────────────────────────────── */
+:root {
+  --bg:           #FDF8F3;
+  --bg-subtle:    #F5EDE2;
+  --card:         #FFFFFF;
+  --card-border:  #E6D5C3;
+  --input-bg:     #F5EDE2;
+  --text-primary: #3D2B1F;
+  --text-muted:   #7C6A5B;
+  --text-faint:   #A89080;
+}
+
+.dark {
+  --bg:           #18130E;
+  --bg-subtle:    #211810;
+  --card:         #241B13;
+  --card-border:  #3D2F24;
+  --input-bg:     #2E2118;
+  --text-primary: #F5EDE2;
+  --text-muted:   #C2A88C;
+  --text-faint:   #7C6550;
+}
+
+/* ─── Base ───────────────────────────────────────────────────── */
+html {
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Utilities ──────────────────────────────────────────────── */
+.theme-bg        { background-color: var(--bg); }
+.theme-card      { background-color: var(--card); border-color: var(--card-border); }
+.theme-input     { background-color: var(--input-bg); border-color: var(--card-border); color: var(--text-primary); }
+.theme-text      { color: var(--text-primary); }
+.theme-muted     { color: var(--text-muted); }
+.theme-faint     { color: var(--text-faint); }
+
+/* ─── Animations ─────────────────────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+
+.float { animation: float 3s ease-in-out infinite; }
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+  background-size: 200% auto;
+  animation: shimmer 2s linear infinite;
+}

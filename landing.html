@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buy4Chai — The supporter page Indian devs deserve</title>
+  <meta name="description" content="A self-hostable, gateway-agnostic supporter page for Indian developers. Zero fees, 10-minute setup.">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .hero {
+      text-align: center;
+      padding: 80px 0 40px;
+    }
+    .hero h1 {
+      font-size: 3.5rem;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--chai-text-muted);
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 24px;
+      width: 100%;
+      margin: 60px 0;
+    }
+    .feature-card {
+      background: #fff;
+      padding: 32px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--chai-border);
+      text-align: left;
+    }
+    .feature-icon {
+      font-size: 24px;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .feature-card h3 {
+      margin-bottom: 8px;
+    }
+    .feature-card p {
+      font-size: 14px;
+      color: var(--chai-text-muted);
+    }
+    .cta-section {
+      text-align: center;
+      padding: 60px 0;
+      width: 100%;
+    }
+    .container-wide {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    .badge-preview {
+      background: #fff;
+      padding: 20px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--chai-border);
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    code {
+      background: var(--chai-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-wide">
+    <header style="display: flex; justify-content: space-between; align-items: center; padding: 20px 0;">
+      <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--chai-primary); font-size: 1.2rem;">
+        <img src="logo.svg" alt="Logo" style="height: 28px; width: auto;">
+        Buy4Chai
+      </div>
+      <a href="https://github.com/shoryasethia/BuyMeAChai" class="social-link" style="font-weight: 600;">GitHub</a>
+    </header>
+
+    <section class="hero">
+      <h1>The supporter page <br><span style="color: var(--chai-primary);">Indian devs deserve.</span></h1>
+      <p>Stripe is invite-only. Buy Me a Coffee is USD-first. <br>We're building the UX layer on top of Razorpay & Dodo.</p>
+      
+      <div style="display: flex; gap: 16px; justify-content: center;">
+        <a href="https://github.com/shoryasethia/BuyMeAChai/fork" class="btn-primary" style="width: auto; padding: 16px 32px; text-decoration: none;">
+          Fork on GitHub
+        </a>
+        <a href="index.html" class="social-link" style="background: #fff; border: 1px solid var(--chai-border); padding: 16px 32px; border-radius: var(--radius-md);">
+          View Demo
+        </a>
+      </div>
+
+      <div class="badge-preview">
+        <span>Your README badge:</span>
+        <img src="badge.svg" alt="Badge Preview">
+      </div>
+    </section>
+
+    <section class="feature-grid">
+      <div class="feature-card">
+        <span class="feature-icon">🚀</span>
+        <h3>10-Minute Setup</h3>
+        <p>Fork, edit <code>chai.config.js</code>, and deploy to Vercel. That's it.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">💸</span>
+        <h3>Zero Fees</h3>
+        <p>We don't touch your money. Payments go directly from supporter to your Razorpay/Dodo account.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🛠️</span>
+        <h3>Gateway Agnostic</h3>
+        <p>Start with Razorpay for UPI. Swap to Dodo for international cards in seconds.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📦</span>
+        <h3>Self-Hostable</h3>
+        <p>You own the code. You own the domain. You own the relationship.</p>
+      </div>
+    </section>
+
+    <section class="cta-section">
+      <h2>Ready to get started?</h2>
+      <p style="margin-top: 10px;">Join 500+ developers making open source sustainable in India.</p>
+      <div style="margin-top: 30px;">
+        <a href="https://github.com/shoryasethia/BuyMeAChai" class="btn-primary" style="display: inline-flex; width: auto; padding: 16px 40px; text-decoration: none;">
+          Read the Docs
+        </a>
+      </div>
+    </section>
+
+    <footer style="padding: 60px 0; border-top: 1px solid var(--chai-border); text-align: center; font-size: 14px; color: var(--chai-text-muted);">
+      <p>A project by <a href="https://github.com/shoryasethia">Shorya Sethia</a> and the open-source community.</p>
+      <p style="margin-top: 8px;">MIT Licensed. Built for the Indian developer ecosystem.</p>
+    </footer>
+  </div>
+</body>
+</html>
