@@ -4,11 +4,13 @@ import {
   User, Link2, CreditCard, Paintbrush, Code2,
   Check, ChevronRight, ChevronLeft, Copy, ExternalLink,
   Github, Twitter, Globe, Linkedin,
-  AlertTriangle, Info, CheckCircle2, Zap, Shield, Image as ImageIcon
+  AlertTriangle, Info, CheckCircle2, Zap, Shield, Image as ImageIcon,
+  MessageSquare, Coffee, Plus, Trash2, DollarSign
 } from 'lucide-react';
 
 const STEPS = [
   { id: 'identity',  label: 'Identity',    icon: User },
+  { id: 'narrative', label: 'Narrative',   icon: MessageSquare },
   { id: 'socials',   label: 'Socials',     icon: Link2 },
   { id: 'gateway',   label: 'Gateway',     icon: CreditCard },
   { id: 'customize', label: 'Customize',   icon: Paintbrush },
@@ -119,35 +121,86 @@ function IdentityStep({ data, set }) {
           <code className="bg-black/10 dark:bg-white/10 px-1 rounded">public/</code> folder as{' '}
           <code className="bg-black/10 dark:bg-white/10 px-1 rounded">avatar.png</code>, then use{' '}
           <code className="bg-black/10 dark:bg-white/10 px-1 rounded">/avatar.png</code> as the URL.
-          Files in <code className="bg-black/10 dark:bg-white/10 px-1 rounded">public/</code> are the
-          only ones Vite serves at a bare path — your root-level files are NOT automatically hosted.
         </p>
       </InfoBox>
-
-      {(data.name || data.avatar) && (
-        <div className="p-4 rounded-2xl border border-[var(--card-border)] bg-[var(--bg-subtle)]">
-          <p className="text-sm font-semibold theme-text mb-3 flex items-center gap-2">
-            <ImageIcon size={15}/>Live Preview
-          </p>
-          <div className="flex items-center gap-4">
-            {data.avatar
-              ? <img src={data.avatar} alt="Preview"
-                  className="w-14 h-14 rounded-full object-cover border-2 border-[var(--card-border)] bg-white"
-                  onError={e => { e.target.style.display = 'none'; }}/>
-              : <div className="w-14 h-14 rounded-full bg-[var(--card-border)] flex items-center justify-center text-2xl">?</div>
-            }
-            <div>
-              <p className="font-bold theme-text">{data.name || 'Your Name'}</p>
-              <p className="text-sm theme-muted">{data.bio || 'Your bio appears here'}</p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
-/* ---- Step 2: Socials ---- */
+/* ---- Step 2: Narrative (Story & Projects) ---- */
+
+function NarrativeStep({ data, set }) {
+  const addImage = () => set('images', [...data.images, '']);
+  const updateImage = (i, v) => {
+    const next = [...data.images];
+    next[i] = v;
+    set('images', next);
+  };
+  const removeImage = (i) => set('images', data.images.filter((_, idx) => idx !== i));
+
+  const addProject = () => set('projects', [...data.projects, { name: '', description: '', link: '', image: '' }]);
+  const updateProject = (i, k, v) => {
+    const next = [...data.projects];
+    next[i] = { ...next[i], [k]: v };
+    set('projects', next);
+  };
+  const removeProject = (i) => set('projects', data.projects.filter((_, idx) => idx !== i));
+
+  return (
+    <div className="space-y-6">
+      <Field label="My Story" hint="Tell your story. Why do you build? What's your mission?">
+        <Textarea value={data.story} onChange={v => set('story', v)} rows={5}
+          placeholder="I'm a developer from India..."/>
+      </Field>
+
+      <div>
+        <label className="block text-sm font-semibold theme-text mb-3 flex justify-between items-center">
+          Gallery Images
+          <button onClick={addImage} className="text-xs bg-chai-500 text-white px-2 py-1 rounded-lg flex items-center gap-1">
+            <Plus size={12}/> Add Image
+          </button>
+        </label>
+        <div className="space-y-2">
+          {data.images.map((img, i) => (
+            <div key={i} className="flex gap-2">
+              <Input value={img} onChange={v => updateImage(i, v)} placeholder="https://unsplash.com/..."/>
+              <button onClick={() => removeImage(i)} className="p-2 text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl">
+                <Trash2 size={18}/>
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold theme-text mb-3 flex justify-between items-center">
+          Pinned Projects
+          <button onClick={addProject} className="text-xs bg-chai-500 text-white px-2 py-1 rounded-lg flex items-center gap-1">
+            <Plus size={12}/> Add Project
+          </button>
+        </label>
+        <div className="space-y-4">
+          {data.projects.map((p, i) => (
+            <div key={i} className="p-4 rounded-2xl border border-[var(--card-border)] bg-[var(--bg-subtle)] space-y-3">
+              <div className="flex justify-between items-center">
+                <p className="text-xs font-bold uppercase tracking-wider opacity-50">Project #{i+1}</p>
+                <button onClick={() => removeProject(i)} className="text-red-400 hover:text-red-500">
+                  <Trash2 size={16}/>
+                </button>
+              </div>
+              <Input value={p.name} onChange={v => updateProject(i, 'name', v)} placeholder="Project Name"/>
+              <Input value={p.description} onChange={v => updateProject(i, 'description', v)} placeholder="Short description"/>
+              <Input value={p.link} onChange={v => updateProject(i, 'link', v)} placeholder="https://github.com/..."/>
+              <Input value={p.image} onChange={v => updateProject(i, 'image', v)} placeholder="Preview Image URL"/>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---- Step 3: Socials ---- */
 
 function SocialsStep({ data, set }) {
   const fields = [
@@ -158,9 +211,6 @@ function SocialsStep({ data, set }) {
   ];
   return (
     <div className="space-y-4">
-      <InfoBox icon={Info} color="blue">
-        All fields are optional. Only filled-in links appear on your page.
-      </InfoBox>
       <div className="space-y-4 pt-2">
         {fields.map(f => (
           <Field key={f.key} label={<span className="flex items-center gap-2">{f.icon}{f.label}</span>}>
@@ -173,23 +223,9 @@ function SocialsStep({ data, set }) {
   );
 }
 
-/* ---- Step 3: Gateway ---- */
+/* ---- Step 4: Gateway ---- */
 
 function GatewayStep({ data, set }) {
-  const razorpaySteps = [
-    { n:1, text: <span>Sign up at <a href="https://razorpay.com" target="_blank" rel="noopener noreferrer" className="text-chai-500 hover:underline font-medium inline-flex items-center gap-1">razorpay.com <ExternalLink size={11}/></a></span> },
-    { n:2, text: 'Go to Settings > API Keys in your dashboard.' },
-    { n:3, text: 'Click "Generate Test Key" (for testing) or "Generate Live Key" (for production).' },
-    { n:4, text: <span>Copy the <strong className="theme-text">Key ID</strong> — starts with <code className="bg-black/10 dark:bg-white/10 px-1 rounded">rzp_test_</code> or <code className="bg-black/10 dark:bg-white/10 px-1 rounded">rzp_live_</code></span> },
-  ];
-
-  const dodoSteps = [
-    { n:1, text: <span>Sign up at <a href="https://dodopayments.com" target="_blank" rel="noopener noreferrer" className="text-chai-500 hover:underline font-medium inline-flex items-center gap-1">dodopayments.com <ExternalLink size={11}/></a></span> },
-    { n:2, text: 'Go to Products > Create a new product. Set it as a one-time payment.' },
-    { n:3, text: 'Set the price in the Dodo dashboard. This price overrides chai.config.js for Dodo.' },
-    { n:4, text: <span>Copy your <strong className="theme-text">Product ID</strong> — looks like <code className="bg-black/10 dark:bg-white/10 px-1 rounded">prod_XXXXXXXXXXXX</code></span> },
-  ];
-
   const StepList = ({ steps, color }) => (
     <div className="p-4 space-y-3 text-sm theme-muted">
       {steps.map(s => (
@@ -203,8 +239,7 @@ function GatewayStep({ data, set }) {
 
   return (
     <div className="space-y-5">
-      <Field label="Which payment gateway?" required
-        hint="Choose based on your audience. You can switch anytime by changing one config field.">
+      <Field label="Which payment gateway?" required>
         <div className="grid grid-cols-2 gap-3">
           {[
             { id: 'razorpay', name: 'Razorpay',      desc: 'Best for India',          badge: 'UPI + Cards',    badgeColor: 'text-blue-600' },
@@ -219,186 +254,92 @@ function GatewayStep({ data, set }) {
               {data.gateway === gw.id && <Check size={13} className="text-chai-500 mb-2"/>}
               <p className="font-bold theme-text text-sm">{gw.name}</p>
               <p className="text-xs theme-muted">{gw.desc}</p>
-              <span className={`text-[10px] font-bold mt-1 block ${gw.badgeColor}`}>{gw.badge}</span>
             </button>
           ))}
         </div>
       </Field>
 
-      {data.gateway === 'razorpay' && (
-        <motion.div initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} className="space-y-4">
-          <div className="rounded-2xl border border-[var(--card-border)] bg-[var(--bg-subtle)] overflow-hidden">
-            <div className="p-4 border-b border-[var(--card-border)]">
-              <p className="font-bold theme-text flex items-center gap-2">
-                <Zap size={14} className="text-blue-500"/>How to get your Razorpay Key ID
-              </p>
-            </div>
-            <StepList steps={razorpaySteps} color="bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400"/>
-          </div>
-          <InfoBox icon={Shield} color="red" title="Key ID only — never the Key Secret">
-            The Key Secret is for servers. Pasting it here exposes it to everyone who views your page source.
-            You only need the <strong>Key ID</strong>.
-          </InfoBox>
-          <Field label="Razorpay Key ID" required hint="Starts with rzp_test_ or rzp_live_">
-            <Input value={data.gatewayKey} onChange={v => set('gatewayKey', v)} placeholder="rzp_test_XXXXXXXXXXXX"/>
-          </Field>
-        </motion.div>
-      )}
-
-      {data.gateway === 'dodo' && (
-        <motion.div initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} className="space-y-4">
-          <div className="rounded-2xl border border-[var(--card-border)] bg-[var(--bg-subtle)] overflow-hidden">
-            <div className="p-4 border-b border-[var(--card-border)]">
-              <p className="font-bold theme-text flex items-center gap-2">
-                <Zap size={14} className="text-purple-500"/>How to get your Dodo Product ID
-              </p>
-            </div>
-            <StepList steps={dodoSteps} color="bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400"/>
-          </div>
-          <InfoBox icon={Info} color="amber" title="Dodo redirects — this is expected">
-            Unlike Razorpay (popup on your page), Dodo sends the supporter to a hosted checkout page,
-            then redirects them back. No code change needed.
-          </InfoBox>
-          <Field label="Dodo Product ID" required hint="Starts with prod_">
-            <Input value={data.gatewayKey} onChange={v => set('gatewayKey', v)} placeholder="prod_XXXXXXXXXXXX"/>
-          </Field>
-        </motion.div>
-      )}
+      <Field label="Gateway Public Key" required hint={data.gateway === 'razorpay' ? 'Key ID (rzp_...)' : 'Product ID (prod_...)'}>
+        <Input value={data.gatewayKey} onChange={v => set('gatewayKey', v)} placeholder="Paste your key here"/>
+      </Field>
     </div>
   );
 }
 
-/* ---- Step 4: Customize ---- */
+/* ---- Step 5: Customize ---- */
 
 function CustomizeStep({ data, set }) {
   return (
     <div className="space-y-4">
-      <Field label="Default selected amount" hint="Which preset button is active when the page first loads.">
-        <div className="grid grid-cols-4 gap-2">
-          {[50, 100, 250, 500].map(amt => (
-            <button key={amt} onClick={() => set('defaultAmount', amt)}
-              className={`py-3 rounded-xl font-bold text-sm transition-all ${
-                data.defaultAmount === amt
-                  ? 'bg-chai-500 text-white shadow-md'
-                  : 'bg-[var(--input-bg)] theme-text hover:bg-[var(--bg-subtle)]'
-              }`}>
-              Rs.{amt}
-            </button>
-          ))}
-        </div>
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Primary Currency" hint="Your gateway's currency.">
+          <Input value={data.currency} onChange={v => set('currency', v)} placeholder="INR"/>
+        </Field>
+        <Field label="Display Currency" hint="Secondary toggle.">
+          <Input value={data.displayCurrency} onChange={v => set('displayCurrency', v)} placeholder="USD"/>
+        </Field>
+      </div>
+
+      <Field label="Exchange Rate" hint={`1 ${data.displayCurrency} = X ${data.currency}`}>
+        <Input type="number" value={data.exchangeRate} onChange={v => set('exchangeRate', parseFloat(v))} placeholder="83.5"/>
       </Field>
 
-      <Field label="Currency" hint="Razorpay: INR. Dodo: USD or EUR.">
-        <div className="grid grid-cols-3 gap-2">
-          {['INR', 'USD', 'EUR'].map(c => (
-            <button key={c} onClick={() => set('currency', c)}
-              className={`py-3 rounded-xl font-bold text-sm transition-all ${
-                data.currency === c
-                  ? 'bg-chai-500 text-white'
-                  : 'bg-[var(--input-bg)] theme-text hover:bg-[var(--bg-subtle)]'
-              }`}>
-              {c}
-            </button>
-          ))}
-        </div>
+      <Field label="Suggested Amounts (USD)" hint="Comma-separated values in USD.">
+        <Input value={data.suggestedAmounts.join(', ')}
+          onChange={v => set('suggestedAmounts', v.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n)))}
+          placeholder="2, 5, 10, 25"/>
       </Field>
 
-      <Field label="Thank You Message" hint="Shown to the supporter after a successful payment.">
+      <Field label="Default Amount (USD)">
+        <Input type="number" value={data.defaultAmount} onChange={v => set('defaultAmount', parseFloat(v))} placeholder="5"/>
+      </Field>
+
+      <Field label="Thank You Message">
         <Textarea value={data.thankYouMessage} onChange={v => set('thankYouMessage', v)} rows={2}
-          placeholder="You made my day! Your support keeps me going."/>
+          placeholder="You made my day!"/>
       </Field>
     </div>
   );
 }
 
-/* ---- Step 5: Generated Config ---- */
+/* ---- Step 6: Generated Config ---- */
 
 function ConfigStep({ data }) {
   const [copied, setCopied] = useState(false);
 
-  const socialsLines = Object.entries(data.socials)
-    .filter(([, v]) => v)
-    .map(([k, v]) => `    ${k}: "${v}",`)
-    .join('\n') || '    // github: "yourusername",';
-
   const output = [
     '// chai.config.js — edit this and deploy',
     'export default {',
-    '  // Identity',
-    `  name: "${data.name || 'Your Name'}",`,
-    `  avatar: "${data.avatar || '/avatar.png'}",`,
-    `  bio: "${data.bio || 'Tell supporters what you build.'}",`,
-    '',
-    '  // Social Links (remove any you do not want)',
-    '  socials: {',
-    socialsLines,
-    '  },',
-    '',
-    '  // Payment Gateway',
+    `  name: ${JSON.stringify(data.name)},`,
+    `  avatar: ${JSON.stringify(data.avatar)},`,
+    `  bio: ${JSON.stringify(data.bio)},`,
+    `  story: ${JSON.stringify(data.story)},`,
+    '  images: ' + JSON.stringify(data.images, null, 2) + ',',
+    '  projects: ' + JSON.stringify(data.projects, null, 2) + ',',
+    '  socials: ' + JSON.stringify(data.socials, null, 2) + ',',
     `  gateway: "${data.gateway}",`,
-    `  gatewayKey: "${data.gatewayKey || 'YOUR_KEY_HERE'}",`,
-    '',
-    '  // Customization',
+    `  gatewayKey: "${data.gatewayKey}",`,
     `  currency: "${data.currency}",`,
+    `  displayCurrency: "${data.displayCurrency}",`,
+    `  exchangeRate: ${data.exchangeRate},`,
+    `  suggestedAmounts: ${JSON.stringify(data.suggestedAmounts)},`,
     `  defaultAmount: ${data.defaultAmount},`,
-    `  thankYouMessage: "${data.thankYouMessage || 'Thank you for your support!'}",`,
-    '}',
+    `  thankYouMessage: "${data.thankYouMessage}",`,
+    '}'
   ].join('\n');
-
-  const ready = data.name && data.gateway && data.gatewayKey;
-
-  const handleCopy = () => {
-    copyToClipboard(output);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
-  };
-
-  const nextSteps = [
-    <>Fork this repo on GitHub</>,
-    <>Replace <code className="bg-black/10 dark:bg-white/10 px-1 rounded">chai.config.js</code> with the config above</>,
-    <>If using a local avatar, place your image at <code className="bg-black/10 dark:bg-white/10 px-1 rounded">public/avatar.png</code> — files at the project root are NOT served by Vite, only files inside <code className="bg-black/10 dark:bg-white/10 px-1 rounded">public/</code> are</>,
-    <>Push to GitHub and import into Vercel (free tier, auto-detects Vite)</>,
-    <>Copy your Vercel URL and paste it into the badge snippet in your README</>,
-  ];
 
   return (
     <div className="space-y-5">
-      {!ready && (
-        <InfoBox icon={AlertTriangle} color="amber" title="A few fields are missing">
-          Go back and fill in your Name, pick a Gateway, and paste your key.
-          The config updates automatically as you fill things in.
-        </InfoBox>
-      )}
-      {ready && (
-        <InfoBox icon={CheckCircle2} color="green" title="You are ready to deploy!">
-          Copy the config below, paste it into <code className="bg-black/10 dark:bg-white/10 px-1 rounded">chai.config.js</code> in your forked repo, and deploy.
-        </InfoBox>
-      )}
-
       <div className="relative">
         <pre className="theme-input border rounded-2xl p-5 text-xs font-mono overflow-x-auto leading-relaxed whitespace-pre">
 {output}
         </pre>
-        <button onClick={handleCopy}
+        <button onClick={() => { copyToClipboard(output); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
           className={`absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-            copied
-              ? 'bg-green-500 text-white'
-              : 'theme-card border border-[var(--card-border)] theme-text hover:bg-[var(--bg-subtle)]'
+            copied ? 'bg-green-500 text-white' : 'theme-card border theme-text hover:bg-[var(--bg-subtle)]'
           }`}>
-          {copied ? <><Check size={12}/>Copied!</> : <><Copy size={12}/>Copy</>}
+          {copied ? 'Copied!' : 'Copy'}
         </button>
-      </div>
-
-      <div className="rounded-2xl border border-[var(--card-border)] bg-[var(--bg-subtle)] p-5">
-        <p className="font-bold theme-text flex items-center gap-2 mb-3"><Zap size={14}/>Next Steps</p>
-        <ol className="space-y-2 text-sm theme-muted">
-          {nextSteps.map((step, i) => (
-            <li key={i} className="flex gap-3">
-              <span className="w-5 h-5 rounded-full bg-chai-100 dark:bg-chai-900/50 text-chai-600 dark:text-chai-400 text-[11px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i+1}</span>
-              <span className="leading-relaxed">{step}</span>
-            </li>
-          ))}
-        </ol>
       </div>
     </div>
   );
@@ -406,15 +347,17 @@ function ConfigStep({ data }) {
 
 /* ---- Root SetupPage ---- */
 
-const STEP_COMPONENTS = [IdentityStep, SocialsStep, GatewayStep, CustomizeStep, ConfigStep];
+const STEP_COMPONENTS = [IdentityStep, NarrativeStep, SocialsStep, GatewayStep, CustomizeStep, ConfigStep];
 
 export default function SetupPage({ dark, toggleDark }) {
   const [step, setStep] = useState(0);
   const [data, setData] = useState({
     name: '', bio: '', avatar: '',
+    story: '', images: [], projects: [],
     socials: { github: '', twitter: '', linkedin: '', website: '' },
     gateway: 'razorpay', gatewayKey: '',
-    defaultAmount: 100, currency: 'INR',
+    currency: 'INR', displayCurrency: 'USD', exchangeRate: 83.5,
+    suggestedAmounts: [2, 5, 10, 25], defaultAmount: 5,
     thankYouMessage: '',
   });
 
@@ -422,93 +365,46 @@ export default function SetupPage({ dark, toggleDark }) {
   const setSocial = (k, v) => setData(d => ({ ...d, socials: { ...d.socials, [k]: v } }));
 
   const CurrentStep = STEP_COMPONENTS[step];
-  const isLast  = step === STEPS.length - 1;
-  const isFirst = step === 0;
 
   return (
     <div className="min-h-screen theme-bg transition-colors duration-300">
       <div className="max-w-2xl mx-auto px-5 py-10">
-
-        {/* Header */}
         <header className="flex justify-between items-center mb-10">
           <div className="flex items-center gap-3">
             <img src="/logo.svg" alt="Buy4Chai" className="w-9 h-9"/>
-            <div>
-              <p className="font-bold theme-text text-lg leading-tight">Setup Wizard</p>
-              <p className="text-xs theme-muted">Buy4Chai</p>
-            </div>
+            <p className="font-bold theme-text text-lg">Setup Wizard</p>
           </div>
-          <button onClick={toggleDark} aria-label="Toggle dark mode"
-            className="w-10 h-10 flex items-center justify-center rounded-full theme-card border shadow-sm hover:scale-105 transition-all text-base">
+          <button onClick={toggleDark} className="w-10 h-10 flex items-center justify-center rounded-full theme-card border shadow-sm">
             {dark ? '☀️' : '🌙'}
           </button>
         </header>
 
-        {/* Progress stepper */}
         <div className="flex items-center gap-2 mb-10 overflow-x-auto pb-1">
-          {STEPS.map((s, i) => {
-            const Icon    = s.icon;
-            const done    = i < step;
-            const current = i === step;
-            return (
-              <React.Fragment key={s.id}>
-                <button
-                  onClick={() => i <= step && setStep(i)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
-                    current ? 'bg-chai-500 text-white shadow-md'
-                    : done   ? 'bg-chai-100 dark:bg-chai-900/50 text-chai-600 dark:text-chai-400 hover:bg-chai-200 cursor-pointer'
-                             : 'bg-[var(--bg-subtle)] theme-muted cursor-not-allowed'
-                  }`}>
-                  {done ? <Check size={13}/> : <Icon size={13}/>}
-                  <span className="hidden sm:inline">{s.label}</span>
-                </button>
-                {i < STEPS.length - 1 && (
-                  <div className={`flex-1 min-w-[16px] h-0.5 rounded-full transition-colors ${
-                    i < step ? 'bg-chai-400' : 'bg-[var(--card-border)]'
-                  }`}/>
-                )}
-              </React.Fragment>
-            );
-          })}
+          {STEPS.map((s, i) => (
+            <button key={s.id} onClick={() => i <= step && setStep(i)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
+                i === step ? 'bg-chai-500 text-white' : i < step ? 'bg-chai-100 dark:bg-chai-900/50 text-chai-600' : 'bg-[var(--bg-subtle)] theme-muted'
+              }`}>
+              <s.icon size={13}/> <span className="hidden sm:inline">{s.label}</span>
+            </button>
+          ))}
         </div>
 
-        {/* Step card */}
-        <motion.div key={step}
-          initial={{opacity:0, x:24}} animate={{opacity:1, x:0}}
-          transition={{duration:0.18}}
-          className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl shadow-black/10 mb-6">
-          <h2 className="text-xl font-bold theme-text mb-0.5">{STEPS[step].label}</h2>
-          <p className="text-sm theme-muted mb-6">Step {step + 1} of {STEPS.length}</p>
-
+        <motion.div key={step} initial={{opacity:0, x:20}} animate={{opacity:1, x:0}}
+          className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl mb-6">
           <CurrentStep
-            data={step === 1 ? data.socials : data}
-            set={step === 1 ? setSocial : set}
+            data={step === 2 ? data.socials : data}
+            set={step === 2 ? setSocial : set}
           />
         </motion.div>
 
-        {/* Navigation */}
         <div className="flex justify-between">
-          <button onClick={() => setStep(s => s - 1)} disabled={isFirst}
-            className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold text-sm transition-all ${
-              isFirst
-                ? 'invisible'
-                : 'theme-card border theme-text hover:bg-[var(--bg-subtle)]'
-            }`}>
-            <ChevronLeft size={16}/>Back
-          </button>
-
-          {!isLast
-            ? <button onClick={() => setStep(s => s + 1)}
-                className="flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold text-sm bg-chai-500 text-white hover:bg-chai-600 shadow-lg shadow-chai-500/30 transition-all active:scale-95">
-                Continue<ChevronRight size={16}/>
-              </button>
-            : <a href="/"
-                className="flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold text-sm bg-chai-500 text-white hover:bg-chai-600 shadow-lg shadow-chai-500/30 transition-all">
-                View Your Page<ChevronRight size={16}/>
-              </a>
+          <button onClick={() => setStep(s => s - 1)} disabled={step === 0} className="px-5 py-3 rounded-2xl border theme-text disabled:opacity-0">Back</button>
+          {step < STEPS.length - 1
+            ? <button onClick={() => setStep(s => s + 1)} className="px-6 py-3 rounded-2xl bg-chai-500 text-white font-bold">Continue</button>
+            : <a href="/" className="px-6 py-3 rounded-2xl bg-chai-500 text-white font-bold">View Page</a>
           }
         </div>
-
       </div>
     </div>
   );
