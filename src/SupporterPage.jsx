@@ -353,6 +353,8 @@ export default function SupporterPage({ dark, toggleDark }) {
                         <input
                           type="number"
                           min="0.5"
+                          step="0.01"
+                          inputMode="decimal"
                           autoFocus
                           placeholder="0.00"
                           value={custom}
@@ -394,7 +396,10 @@ export default function SupporterPage({ dark, toggleDark }) {
                   <>
                     <span className="text-lg">Support with {config.gateway === 'razorpay' ? 'Razorpay' : 'Dodo'}</span>
                     <span className="text-xs opacity-70 mt-1 uppercase tracking-tighter">
-                      Total: {formatCurrency(displayAmountUSD, secondaryCurrency)} ({formatCurrency(Math.round(displayAmountUSD * exchangeRate), primaryCurrency)})
+                      Total: {isUSD
+                        ? `${formatCurrency(displayAmountUSD, secondaryCurrency)} (${formatCurrency(Math.round(displayAmountUSD * exchangeRate), primaryCurrency)})`
+                        : `${formatCurrency(Math.round(displayAmountUSD * exchangeRate), primaryCurrency)} (${formatCurrency(displayAmountUSD, secondaryCurrency)})`
+                      }
                     </span>
                   </>
                 )}

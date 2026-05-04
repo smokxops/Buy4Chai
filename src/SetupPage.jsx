@@ -323,7 +323,19 @@ function CustomizeStep({ data, set }) {
       </div>
 
       <Field label="Exchange Rate" hint={`1 ${data.displayCurrency} = X ${data.currency}`}>
-        <Input type="number" value={data.exchangeRate} onChange={v => set('exchangeRate', parseFloat(v))} placeholder="83.5"/>
+        <Input
+          type="number"
+          value={data.exchangeRate}
+          onChange={v => {
+            const parsed = parseFloat(v);
+            if (Number.isFinite(parsed) && parsed > 0) {
+              set('exchangeRate', parsed);
+            } else if (v === '') {
+              set('exchangeRate', '');
+            }
+          }}
+          placeholder="83.5"
+        />
       </Field>
 
       <Field label="Suggested Amounts (USD)" hint="Comma-separated values in USD.">
