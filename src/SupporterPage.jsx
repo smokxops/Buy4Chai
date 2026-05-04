@@ -23,7 +23,7 @@ const SOCIAL_LABEL = { github: 'GitHub', twitter: 'Twitter', linkedin: 'LinkedIn
 /* ─── SupporterPage ───────────────────────────────────────────── */
 export default function SupporterPage({ dark, toggleDark }) {
   const [showPayment, setShowPayment] = useState(false);
-  const [isUSD, setIsUSD] = useState(false);
+  const [isUSD, setIsUSD] = useState(true);
   const [selected, setSelected] = useState(config.defaultAmount || 5);
   const [custom, setCustom] = useState('');
   const [isCustomMode, setIsCustomMode] = useState(false);
@@ -37,7 +37,7 @@ export default function SupporterPage({ dark, toggleDark }) {
 
   const suggestedAmounts = config.suggestedAmounts || [2, 5, 10, 25];
 
-  const displayAmount = isCustomMode ? custom : selected;
+  const displayAmountUSD = parseFloat(isCustomMode ? custom : selected) || 0;
 
   useEffect(() => {
     if (config.gateway === 'dodo') {
@@ -52,11 +52,13 @@ export default function SupporterPage({ dark, toggleDark }) {
   const onCustom     = (e)   => { setCustom(e.target.value); setError(''); };
 
   const handlePay = async () => {
-    const amtUSD = parseFloat(displayAmount);
-    if (!amtUSD || amtUSD < 0.5) { setError('Please enter a valid amount (min $0.50).'); return; }
+    if (!displayAmountUSD || displayAmountUSD < 0.5) {
+      setError('Please enter a valid amount (min $0.50).');
+      return;
+    }
 
-    // Convert to primary currency (INR usually) for the gateway
-    const amtPrimary = Math.round(amtUSD * exchangeRate);
+    // Convert to primary currency (e.g. INR) for the gateway
+    const amtPrimary = Math.round(displayAmountUSD * exchangeRate);
 
     setIsProcessing(true); setError(''); setSuccess(false);
     try {
@@ -293,17 +295,17 @@ export default function SupporterPage({ dark, toggleDark }) {
               </div>
 
               {/* Currency Toggle */}
-              <div className="flex items-center justify-between mb-6 p-2 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)]">
-                <div className="flex flex-col ml-2">
-                  <span className="text-sm font-bold text-[var(--text-muted)]">Currently showing {isUSD ? secondaryCurrency : primaryCurrency}</span>
-                  <span className="text-[10px] text-[var(--text-faint)] font-bold uppercase tracking-tight">Rate: 1 {secondaryCurrency} = {exchangeRate} {primaryCurrency}*</span>
+              <div className="flex items-center justify-between mb-6 p-3 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)]">
+                <div className="flex flex-col ml-1">
+                  <span className="text-xs font-bold text-[var(--text-muted)] leading-tight">Showing {isUSD ? secondaryCurrency : primaryCurrency}</span>
+                  <span className="text-[9px] text-[var(--text-faint)] font-bold uppercase tracking-tighter">1 {secondaryCurrency} = {exchangeRate} {primaryCurrency}</span>
                 </div>
                 <button
                   onClick={() => setIsUSD(!isUSD)}
-                  className="flex items-center gap-2 bg-[var(--text-primary)] text-[var(--bg)] px-4 py-2 rounded-xl text-xs font-black hover:opacity-90 transition-opacity"
+                  className="flex items-center gap-1.5 bg-[var(--text-primary)] text-[var(--bg)] px-3 py-1.5 rounded-lg text-[10px] font-black hover:opacity-90 transition-opacity"
                 >
-                  <Repeat size={14} />
-                  Switch to {!isUSD ? secondaryCurrency : primaryCurrency}
+                  <Repeat size={12} />
+                  {isUSD ? primaryCurrency : secondaryCurrency}
                 </button>
               </div>
 
@@ -392,7 +394,7 @@ export default function SupporterPage({ dark, toggleDark }) {
                   <>
                     <span className="text-lg">Support with {config.gateway === 'razorpay' ? 'Razorpay' : 'Dodo'}</span>
                     <span className="text-xs opacity-70 mt-1 uppercase tracking-tighter">
-                      Total: {formatCurrency(displayAmount, 'USD')} ({formatCurrency(Math.round(displayAmount * exchangeRate), primaryCurrency)})
+                      Total: {formatCurrency(displayAmountUSD, secondaryCurrency)} ({formatCurrency(Math.round(displayAmountUSD * exchangeRate), primaryCurrency)})
                     </span>
                   </>
                 )}

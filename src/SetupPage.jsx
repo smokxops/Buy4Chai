@@ -367,11 +367,19 @@ function ConfigStep({ data }) {
     `  suggestedAmounts: ${JSON.stringify(data.suggestedAmounts)},`,
     `  defaultAmount: ${data.defaultAmount},`,
     `  thankYouMessage: "${data.thankYouMessage}",`,
+    `  showSetup: false, // Set to true to re-enable the /#setup route`,
+    `  setupKey: "${Math.random().toString(36).substring(2, 10)}", // Secret key for /#setup?key=...`,
     '}'
   ].join('\n');
 
   return (
     <div className="space-y-5">
+      <InfoBox icon={Shield} color="green" title="Production & Security Tips">
+        <ul className="list-disc ml-4 space-y-1">
+          <li>Your config now includes <code className="bg-black/10 px-1 rounded">showSetup: false</code>. This hides this wizard from the public.</li>
+          <li>A random <code className="bg-black/10 px-1 rounded">setupKey</code> has been generated. To access this wizard later, use <code className="bg-black/10 px-1 rounded">/#setup?key=YOUR_KEY</code>.</li>
+        </ul>
+      </InfoBox>
       <div className="relative">
         <pre className="theme-input border rounded-2xl p-5 text-xs font-mono overflow-x-auto leading-relaxed whitespace-pre">
 {output}

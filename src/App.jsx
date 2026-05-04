@@ -27,7 +27,16 @@ export default function App() {
   }, [dark]);
 
   const toggleDark = () => setDark(d => !d);
-  const isSetup = hash === '#setup';
+
+  // URL check for /#setup?key=...
+  const queryParams = new URLSearchParams(window.location.hash.split('?')[1]);
+  const setupKey = queryParams.get('key');
+  const expectedKey = import.meta.env.VITE_SETUP_KEY || config.setupKey;
+
+  // Only allow setup if it's enabled in config AND the key matches (if a key is configured)
+  const isSetup = hash.startsWith('#setup') &&
+                  (config.showSetup !== false) &&
+                  (!expectedKey || setupKey === expectedKey);
 
   const themeStyles = config.theme ? `
     :root {

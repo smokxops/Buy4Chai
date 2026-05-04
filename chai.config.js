@@ -63,4 +63,11 @@ export default {
 
   // Success Message
   thankYouMessage: "You made my day! Your support keeps me motivated to build and share more.",
+
+  // 6. Production & Security (Optional)
+  // Set showSetup to false to hide the /#setup route from the public.
+  showSetup: true,
+
+  // If setupKey is set, you must access via /#setup?key=yourkey
+  setupKey: "chai123",
 }
