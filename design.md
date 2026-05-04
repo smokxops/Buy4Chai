@@ -6,11 +6,11 @@ This document tracks the UI/UX decisions, color tokens, dark mode strategy, and 
 
 ## 1. Core Aesthetic
 
-The goal is to feel **premium, trustworthy, and modern** without being overwhelming. We want a design that developers are proud to host on their own domains.
+The goal is to feel **narrative-driven, intentional, and human**. We've moved away from "transactional" payment pages toward a design that tells a story. We want a design that developers are proud to host on their own domains as their primary "About" or "Support" page.
 
-- **Theme**: "Glassy Chai"
+- **Theme**: "Narrative Chai"
 - **Typography**: Outfit (sans-serif) — clean, geometric, highly legible at small sizes.
-- **Vibe**: Soft shadows, warm tones, pill-shaped buttons, and subtle micro-animations (Framer Motion).
+- **Vibe**: 2-column editorial layout, soft glassmorphism, warm tones, and narrative flow.
 
 ## 2. Color System & Tokens
 
@@ -53,27 +53,40 @@ The React app is built as a Single Page Application (SPA) using Vite, but it has
 ### A. The Supporter Page (`/`)
 File: `src/SupporterPage.jsx`
 
-This is what the end-user (the supporter) sees.
-- **Header**: Logo, title, developer's social links, dark mode toggle.
-- **Profile**: Avatar (local `/avatar.png` or remote URL), Name, Bio.
-- **Payment Card**: 
-  - 4 Preset amounts (with a "POPULAR" badge on ₹100).
-  - Custom amount input.
-  - Gateway-specific action button ("Support with Razorpay").
-- **Success State**: The form is hidden/collapsed upon successful payment and replaced with a personalized "Thank You" message.
+The supporter page uses an **Editorial/Narrative** layout. Instead of a single centered card, it uses a 2-column structure on desktop:
+- **Left Column (The Story)**:
+  - **Hero Identity**: High-res avatar, bold greeting, and one-line bio.
+  - **Social Links**: Prominent button-style links with platform icons.
+  - **Narrative Section**: A dedicated "My Story" space for long-form mission statements.
+  - **Visual Gallery**: A grid of images (hides automatically if none provided).
+  - **Pinned Projects**: High-quality cards for showcasing open-source work.
+- **Right Column (The CTA)**:
+  - **Sticky Support Card**: Follows the user as they read the story.
+  - **Support Overlay**: A refined, focused menu for selecting payment amounts.
+- **Success State**: A celebratory "Thank You" screen with custom messaging.
 
-### B. The Setup Wizard (`/#setup`)
+### B. The Currency System
+Buy4Chai features a sophisticated **Dual-Currency** engine:
+- **Creator Base**: Creators set their exchange rate and suggested amounts in USD (as a global standard).
+- **Supporter Choice**: Supporters can toggle between USD and the primary currency (e.g., INR).
+- **Visual Swapping**: When toggled, the UI swaps the "Major" and "Minor" currency positions on all buttons.
+- **Locale Awareness**: Correct formatting for ₹ (en-IN) and $ (en-US).
+
+### C. The Setup Wizard (`/#setup`)
 File: `src/SetupPage.jsx`
 
-This is the developer onboarding flow. It ensures the user configures the project correctly before deploying.
+A 6-step gated wizard for 0-code configuration.
 
-- **Step 1: Identity**: Name, Bio, Avatar. Includes a live preview and explicit instructions on how Vite handles the `public/` directory for static assets.
-- **Step 2: Socials**: URL-prefixed inputs for GitHub, Twitter, LinkedIn, Website.
-- **Step 3: Gateway**: Selection between Razorpay and Dodo.
-  - *Context-Aware Instructions*: Shows exactly where to click in the respective dashboards to get the required keys.
-  - *Security Focus*: Explicit warnings against pasting the Key Secret in the frontend.
-- **Step 4: Customize**: Default amount selection, Currency picker, Thank you message.
-- **Step 5: Config**: Generates the final `chai.config.js` string, provides a one-click copy button, and lists the exact 5 steps to deploy to Vercel/GitHub Pages.
+- **Step 1: Identity**: Name, Bio, Avatar setup.
+- **Step 2: Narrative**: Editor for long-form story, image gallery management, and project pinning (with reordering).
+- **Step 3: Socials**: Link management.
+- **Step 4: Gateway**: Razorpay/Dodo configuration with integrated security guides.
+- **Step 5: Customize**: Currency settings, exchange rates, and suggested amounts.
+- **Step 6: Config**: Generates `chai.config.js` with integrated security flags.
+
+**Security Gates**:
+- **Setup Lockdown**: Developers can set `showSetup: false` in their config to disable the route entirely in production.
+- **Password Protection**: The route is protected by a `setupKey`. Access requires a URL parameter like `/#setup?key=YOUR_KEY`.
 
 ## 4. Key UX Decisions
 
