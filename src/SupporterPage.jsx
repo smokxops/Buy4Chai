@@ -78,7 +78,8 @@ export default function SupporterPage({ dark, toggleDark }) {
   };
 
   const formatCurrency = (amount, currency) => {
-    return new Intl.NumberFormat('en-IN', {
+    const locale = currency === 'INR' ? 'en-IN' : 'en-US';
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: currency,
       maximumFractionDigits: amount % 1 === 0 ? 0 : 2
@@ -90,7 +91,7 @@ export default function SupporterPage({ dark, toggleDark }) {
       
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-[var(--bg)]/80 border-b border-[var(--card-border)]/50">
-        <div className="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img src="/logo.svg" alt="Buy4Chai" className="w-6 h-6"/>
             <span className="font-bold text-[var(--text-primary)] text-lg tracking-tight">Buy4Chai</span>
@@ -99,167 +100,165 @@ export default function SupporterPage({ dark, toggleDark }) {
             <button onClick={toggleDark} className="w-9 h-9 flex items-center justify-center rounded-full bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all">
               {dark ? <Sun size={18} className="text-amber-500"/> : <Moon size={18}/>}
             </button>
-            <button
-              onClick={() => setShowPayment(true)}
-              className="bg-[var(--text-primary)] text-[var(--bg)] px-5 py-2 rounded-full text-sm font-bold hover:scale-105 transition-transform active:scale-95 shadow-lg shadow-black/10"
-            >
-              Support
-            </button>
           </div>
         </div>
       </nav>
 
-      <main className="max-w-3xl mx-auto px-6 pt-32 pb-24">
+      <main className="max-w-6xl mx-auto px-6 pt-24 pb-24 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
         
-        {/* Hero Section */}
-        <section className="mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="flex flex-col items-center text-center"
-          >
-            <div className="relative mb-8">
-              <div className="absolute inset-0 bg-chai-500 blur-3xl opacity-20 rounded-full"></div>
-              <img
-                src={config.avatar || '/avatar.png'}
-                alt={config.name}
-                className="relative w-32 h-32 lg:w-40 lg:h-40 rounded-3xl border-2 border-[var(--card-border)] object-cover bg-white shadow-2xl"
-              />
-              <div className="absolute -bottom-3 -right-3 w-12 h-12 bg-[var(--card)] rounded-2xl border border-[var(--card-border)] shadow-xl flex items-center justify-center text-2xl rotate-12">
-                ☕
-              </div>
-            </div>
+        {/* Left Column: Creator Narrative (Scrollable) */}
+        <div className="lg:col-span-7 space-y-16">
 
-            <h1 className="text-4xl lg:text-6xl font-black text-[var(--text-primary)] tracking-tight mb-4 leading-tight">
-              Hey, I'm {config.name}!
-            </h1>
-            
-            <p className="text-xl text-[var(--text-muted)] leading-relaxed max-w-xl mb-8 font-medium">
-              {config.bio}
-            </p>
-
-            <div className="flex flex-wrap justify-center gap-3">
-              {config.socials && Object.entries(config.socials)
-                .filter(([,v]) => v)
-                .map(([platform, value]) => (
-                <a key={platform} href={SOCIAL_URLS[platform]?.(value) ?? value} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--text-primary)] transition-all text-sm font-bold shadow-sm">
-                  {SOCIAL_ICON[platform]}
-                  <span>{SOCIAL_LABEL[platform] ?? platform}</span>
-                </a>
-              ))}
-            </div>
-          </motion.div>
-        </section>
-
-        {/* Story Section */}
-        {config.story && (
-          <section className="mb-20">
+          {/* Hero Section */}
+          <section>
             <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className="prose prose-lg dark:prose-invert max-w-none"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-8"
             >
-              <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2">
-                <MessageSquare size={24} className="text-chai-500" />
-                My Story
-              </h2>
-              <p className="text-[var(--text-muted)] leading-relaxed text-lg whitespace-pre-wrap">
-                {config.story}
-              </p>
+              <div className="relative inline-block">
+                <img
+                  src={config.avatar || '/avatar.png'}
+                  alt={config.name}
+                  className="w-28 h-28 lg:w-36 lg:h-36 rounded-3xl border-2 border-[var(--card-border)] object-cover bg-white shadow-xl"
+                />
+                <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[var(--card)] rounded-xl border border-[var(--card-border)] shadow-lg flex items-center justify-center text-xl rotate-12">☕</div>
+              </div>
+
+              <div>
+                <h1 className="text-4xl lg:text-5xl font-black text-[var(--text-primary)] tracking-tight mb-4">
+                  Hey, I'm {config.name}!
+                </h1>
+                <p className="text-xl text-[var(--text-muted)] leading-relaxed font-medium max-w-xl">
+                  {config.bio}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                {config.socials && Object.entries(config.socials)
+                  .filter(([,v]) => v)
+                  .map(([platform, value]) => (
+                  <a key={platform} href={SOCIAL_URLS[platform]?.(value) ?? value} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--text-primary)] transition-all text-sm font-bold shadow-sm">
+                    {SOCIAL_ICON[platform]}
+                    <span>{SOCIAL_LABEL[platform] ?? platform}</span>
+                  </a>
+                ))}
+              </div>
             </motion.div>
           </section>
-        )}
 
-        {/* Image Gallery */}
-        {config.images && config.images.length > 0 && (
-          <section className="mb-20">
-            <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-8 flex items-center gap-2">
-              <ImageIcon size={24} className="text-chai-500" />
-              Gallery
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {config.images.map((img, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="relative group aspect-video overflow-hidden rounded-2xl border border-[var(--card-border)]"
-                >
-                  <img
-                    src={img}
-                    alt={`Gallery ${i}`}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                </motion.div>
-              ))}
-            </div>
-          </section>
-        )}
+          {/* Story Section */}
+          {config.story && (
+            <section>
+              <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2 uppercase tracking-widest text-xs opacity-50">
+                <MessageSquare size={16} />
+                My Story
+              </h2>
+              <p className="text-[var(--text-muted)] leading-relaxed text-lg whitespace-pre-wrap font-medium">
+                {config.story}
+              </p>
+            </section>
+          )}
 
-        {/* Pinned Projects */}
-        {config.projects && config.projects.length > 0 && (
-          <section className="mb-20">
-            <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-8 flex items-center gap-2">
-              <Coffee size={24} className="text-chai-500" />
-              Pinned Projects
-            </h2>
-            <div className="grid grid-cols-1 gap-6">
-              {config.projects.map((project, i) => (
-                <motion.a
-                  key={i}
-                  href={project.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="flex flex-col md:flex-row gap-6 p-6 rounded-3xl bg-[var(--card)] border border-[var(--card-border)] hover:border-[var(--text-primary)] transition-all group"
-                >
-                  {project.image && (
-                    <div className="w-full md:w-48 h-32 shrink-0 overflow-hidden rounded-2xl border border-[var(--card-border)]">
-                      <img src={project.image} alt={project.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                    </div>
-                  )}
-                  <div className="flex flex-col justify-center">
-                    <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 flex items-center gap-2">
-                      {project.name}
-                      <ExternalLink size={16} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </h3>
-                    <p className="text-[var(--text-muted)] text-sm leading-relaxed mb-4">
-                      {project.description}
-                    </p>
-                    <div className="flex items-center text-xs font-bold text-chai-500">
-                      Learn more <ArrowRight size={14} className="ml-1 group-hover:translate-x-1 transition-transform" />
-                    </div>
+          {/* Image Gallery */}
+          {config.images && config.images.length > 0 && (
+            <section>
+              <h2 className="text-xl font-bold text-[var(--text-primary)] mb-8 flex items-center gap-2 uppercase tracking-widest text-xs opacity-50">
+                <ImageIcon size={16} />
+                Gallery
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {config.images.map((img, i) => (
+                  <div key={i} className="aspect-video overflow-hidden rounded-2xl border border-[var(--card-border)] bg-[var(--input-bg)]">
+                    <img src={img} alt={`Gallery ${i}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                   </div>
-                </motion.a>
-              ))}
-            </div>
-          </section>
-        )}
+                ))}
+              </div>
+            </section>
+          )}
 
-        {/* CTA Section */}
-        <section className="text-center py-20 px-8 rounded-[3rem] bg-[var(--text-primary)] text-[var(--bg)] relative overflow-hidden">
-          <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-64 h-64 bg-chai-500 blur-[100px] opacity-30"></div>
-          <div className="relative z-10">
-            <h2 className="text-3xl font-black mb-4">Enjoying my work?</h2>
-            <p className="text-[var(--bg)]/70 mb-10 text-lg font-medium max-w-md mx-auto">
-              Your support directly fuels these projects and keeps me creating.
-            </p>
-            <button
-              onClick={() => setShowPayment(true)}
-              className="bg-[var(--bg)] text-[var(--text-primary)] px-10 py-4 rounded-full text-lg font-black hover:scale-105 transition-transform active:scale-95 shadow-2xl"
-            >
-              Buy me a chai
-            </button>
-          </div>
-        </section>
+          {/* Pinned Projects */}
+          {config.projects && config.projects.length > 0 && (
+            <section>
+              <h2 className="text-xl font-bold text-[var(--text-primary)] mb-8 flex items-center gap-2 uppercase tracking-widest text-xs opacity-50">
+                <Coffee size={16} />
+                Pinned Projects
+              </h2>
+              <div className="grid grid-cols-1 gap-4">
+                {config.projects.map((project, i) => (
+                  <a key={i} href={project.link} target="_blank" rel="noopener noreferrer"
+                    className="flex flex-col sm:flex-row gap-6 p-6 rounded-3xl bg-[var(--card)] border border-[var(--card-border)] hover:border-[var(--text-primary)] transition-all group">
+                    {project.image && (
+                      <div className="w-full sm:w-32 h-24 shrink-0 overflow-hidden rounded-xl border border-[var(--card-border)]">
+                        <img src={project.image} alt={project.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1 flex items-center gap-2">
+                        {project.name}
+                        <ArrowRight size={14} className="-rotate-45 opacity-0 group-hover:opacity-100 group-hover:rotate-0 transition-all" />
+                      </h3>
+                      <p className="text-[var(--text-muted)] text-sm leading-relaxed mb-3">{project.description}</p>
+                      <span className="text-xs font-black uppercase tracking-tighter text-chai-500">View Project</span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
+
+        </div>
+
+        {/* Right Column: Support Card (Sticky) */}
+        <div className="lg:col-span-5 lg:sticky lg:top-24">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="theme-card border rounded-[2.5rem] p-8 lg:p-10 shadow-2xl shadow-black/5 relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-40 h-40 bg-chai-500 blur-[80px] opacity-10"></div>
+
+            <div className="relative z-10 space-y-8">
+              <div>
+                <h2 className="text-3xl font-black text-[var(--text-primary)] mb-3">Support {config.name}</h2>
+                <p className="text-[var(--text-muted)] text-base font-medium leading-relaxed">
+                  Your support directly fuels my work and helps me stay independent.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <button
+                  onClick={() => setShowPayment(true)}
+                  className="w-full bg-[var(--text-primary)] text-[var(--bg)] py-5 rounded-2xl text-xl font-black hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-black/10 flex items-center justify-center gap-3"
+                >
+                  <Coffee size={24} />
+                  Buy me a chai
+                </button>
+                <div className="flex items-center justify-center gap-2 text-xs font-bold text-[var(--text-faint)] uppercase tracking-widest">
+                  <ShieldCheck size={14}/>
+                  <span>Secure Checkout</span>
+                </div>
+              </div>
+
+              <div className="pt-8 border-t border-[var(--card-border)]/50">
+                <p className="text-sm font-bold text-[var(--text-primary)] mb-4">Why support?</p>
+                <ul className="space-y-3">
+                  {[
+                    "Keep projects open source",
+                    "Fuel new experiments",
+                    "Say thanks for the value"
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-center gap-3 text-sm text-[var(--text-muted)] font-medium">
+                      <div className="w-1.5 h-1.5 rounded-full bg-chai-500"></div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+        </div>
 
       </main>
 
@@ -295,13 +294,16 @@ export default function SupporterPage({ dark, toggleDark }) {
 
               {/* Currency Toggle */}
               <div className="flex items-center justify-between mb-6 p-2 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)]">
-                <span className="text-sm font-bold text-[var(--text-muted)] ml-2">Show in {!isUSD ? secondaryCurrency : primaryCurrency}</span>
+                <div className="flex flex-col ml-2">
+                  <span className="text-sm font-bold text-[var(--text-muted)]">Currently showing {isUSD ? secondaryCurrency : primaryCurrency}</span>
+                  <span className="text-[10px] text-[var(--text-faint)] font-bold uppercase tracking-tight">Rate: 1 {secondaryCurrency} = {exchangeRate} {primaryCurrency}*</span>
+                </div>
                 <button
                   onClick={() => setIsUSD(!isUSD)}
                   className="flex items-center gap-2 bg-[var(--text-primary)] text-[var(--bg)] px-4 py-2 rounded-xl text-xs font-black hover:opacity-90 transition-opacity"
                 >
                   <Repeat size={14} />
-                  Swap
+                  Switch to {!isUSD ? secondaryCurrency : primaryCurrency}
                 </button>
               </div>
 
@@ -309,6 +311,11 @@ export default function SupporterPage({ dark, toggleDark }) {
               <div className="grid grid-cols-2 gap-3 mb-6">
                 {suggestedAmounts.map(amt => {
                   const isSelected = !isCustomMode && selected === amt;
+                  const mainAmount = isUSD ? amt : Math.round(amt * exchangeRate);
+                  const subAmount = !isUSD ? amt : Math.round(amt * exchangeRate);
+                  const mainCurrency = isUSD ? secondaryCurrency : primaryCurrency;
+                  const subCurrency = !isUSD ? secondaryCurrency : primaryCurrency;
+
                   return (
                     <button
                       key={amt}
@@ -318,9 +325,9 @@ export default function SupporterPage({ dark, toggleDark }) {
                           ? 'bg-[var(--text-primary)] text-[var(--bg)] scale-[1.02] shadow-lg'
                           : 'bg-[var(--input-bg)] text-[var(--text-muted)] hover:bg-[var(--bg-subtle)] border border-[var(--card-border)]'}`}
                     >
-                      <span>{formatCurrency(isUSD ? amt : Math.round(amt * exchangeRate), isUSD ? secondaryCurrency : primaryCurrency)}</span>
+                      <span>{formatCurrency(mainAmount, mainCurrency)}</span>
                       <span className={`text-[10px] uppercase tracking-widest mt-1 opacity-60 ${isSelected ? 'text-[var(--bg)]' : 'text-[var(--text-muted)]'}`}>
-                        {formatCurrency(!isUSD ? amt : Math.round(amt * exchangeRate), !isUSD ? secondaryCurrency : primaryCurrency)}
+                        {formatCurrency(subAmount, subCurrency)}
                       </span>
                     </button>
                   );
@@ -391,10 +398,9 @@ export default function SupporterPage({ dark, toggleDark }) {
                 )}
               </button>
 
-              <div className="mt-6 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[var(--text-faint)]">
-                <ShieldCheck size={14}/>
-                <span>Secure Checkout</span>
-              </div>
+              <p className="mt-4 text-[10px] text-center text-[var(--text-faint)] font-medium italic">
+                * Exchange rate set by creator. Final amount may vary slightly based on your bank's rate.
+              </p>
             </motion.div>
           </div>
         )}
@@ -429,16 +435,18 @@ export default function SupporterPage({ dark, toggleDark }) {
 
       {/* Footer */}
       <footer className="border-t border-[var(--card-border)]/50 bg-[var(--bg-subtle)]/50">
-        <div className="max-w-4xl mx-auto px-6 py-12 flex flex-col items-center gap-6 text-center">
-          <div className="flex items-center gap-2 font-black text-[var(--text-primary)]">
-            <img src="/logo.svg" alt="Logo" className="w-5 h-5" />
-            Buy4Chai
+        <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+          <div className="space-y-2">
+            <div className="flex items-center justify-center md:justify-start gap-2 font-black text-[var(--text-primary)]">
+              <img src="/logo.svg" alt="Logo" className="w-5 h-5" />
+              Buy4Chai
+            </div>
+            <p className="text-xs font-medium text-[var(--text-muted)] max-w-sm">
+              A self-hostable, gateway-agnostic supporter page for independent creators.
+            </p>
           </div>
-          <p className="text-sm font-medium text-[var(--text-muted)] max-w-sm">
-            A self-hostable, gateway-agnostic supporter page for independent creators.
-          </p>
-          <div className="flex items-center gap-6 text-xs font-bold text-[var(--text-faint)] uppercase tracking-widest">
-            <span className="flex items-center gap-1.5">Made with <Heart size={12} className="text-red-500 fill-red-500"/> in India</span>
+          <div className="flex items-center gap-6 text-[10px] font-bold text-[var(--text-faint)] uppercase tracking-widest">
+            <span className="flex items-center gap-1.5">Made with <Heart size={10} className="text-red-500 fill-red-500"/> in India</span>
             <span>•</span>
             <a href="https://github.com/shoryasethia/BuyMeAChai" className="hover:text-[var(--text-primary)] transition-colors">Open Source</a>
           </div>

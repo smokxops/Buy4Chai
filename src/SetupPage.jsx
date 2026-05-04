@@ -45,7 +45,7 @@ function InfoBox({ icon: Icon = Info, color = 'blue', title, children }) {
   );
 }
 
-function Field({ label, hint, required, children }) {
+function Field({ label, hint, required, error, children }) {
   return (
     <div className="mb-5">
       <label className="block text-sm font-semibold theme-text mb-1">
@@ -53,6 +53,7 @@ function Field({ label, hint, required, children }) {
       </label>
       {hint && <p className="text-xs theme-muted mb-2">{hint}</p>}
       {children}
+      {error && <p className="text-xs text-red-500 mt-1 font-bold">{error}</p>}
     </div>
   );
 }
@@ -88,23 +89,23 @@ function Textarea({ value, onChange, placeholder, rows = 3 }) {
 
 /* ---- Step 1: Identity ---- */
 
-function IdentityStep({ data, set }) {
+function IdentityStep({ data, set, errors }) {
   return (
     <div className="space-y-4">
       <InfoBox icon={Info} color="blue" title="Your public profile">
         This shows up on your supporter page. Use your real name and a friendly bio.
       </InfoBox>
 
-      <Field label="Your Name" required hint="First name or full name — whatever you go by publicly.">
+      <Field label="Your Name" required error={errors.name} hint="First name or full name — whatever you go by publicly.">
         <Input value={data.name} onChange={v => set('name', v)} placeholder="Arjun Sharma"/>
       </Field>
 
-      <Field label="One-line Bio" required hint="Tell supporters what you build. Keep it short.">
+      <Field label="One-line Bio" required error={errors.bio} hint="Tell supporters what you build. Keep it short.">
         <Textarea value={data.bio} onChange={v => set('bio', v)} rows={2}
           placeholder="I build open source tools and write about web dev. Every chai helps!"/>
       </Field>
 
-      <Field label="Avatar Image URL" hint="Read the options below before pasting.">
+      <Field label="Avatar Image URL" error={errors.avatar} hint="Read the options below before pasting.">
         <Input value={data.avatar} onChange={v => set('avatar', v)}
           placeholder="https://github.com/yourusername.png"/>
       </Field>
@@ -145,6 +146,13 @@ function NarrativeStep({ data, set }) {
     set('projects', next);
   };
   const removeProject = (i) => set('projects', data.projects.filter((_, idx) => idx !== i));
+  const moveProject = (i, dir) => {
+    const next = [...data.projects];
+    const target = i + dir;
+    if (target < 0 || target >= next.length) return;
+    [next[i], next[target]] = [next[target], next[i]];
+    set('projects', next);
+  };
 
   return (
     <div className="space-y-6">
@@ -184,9 +192,17 @@ function NarrativeStep({ data, set }) {
             <div key={i} className="p-4 rounded-2xl border border-[var(--card-border)] bg-[var(--bg-subtle)] space-y-3">
               <div className="flex justify-between items-center">
                 <p className="text-xs font-bold uppercase tracking-wider opacity-50">Project #{i+1}</p>
-                <button onClick={() => removeProject(i)} className="text-red-400 hover:text-red-500">
-                  <Trash2 size={16}/>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => moveProject(i, -1)} disabled={i === 0} className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30">
+                    <ChevronLeft size={16} className="rotate-90"/>
+                  </button>
+                  <button onClick={() => moveProject(i, 1)} disabled={i === data.projects.length - 1} className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30">
+                    <ChevronLeft size={16} className="-rotate-90"/>
+                  </button>
+                  <button onClick={() => removeProject(i)} className="ml-2 text-red-400 hover:text-red-500">
+                    <Trash2 size={16}/>
+                  </button>
+                </div>
               </div>
               <Input value={p.name} onChange={v => updateProject(i, 'name', v)} placeholder="Project Name"/>
               <Input value={p.description} onChange={v => updateProject(i, 'description', v)} placeholder="Short description"/>
@@ -225,25 +241,16 @@ function SocialsStep({ data, set }) {
 
 /* ---- Step 4: Gateway ---- */
 
-function GatewayStep({ data, set }) {
-  const StepList = ({ steps, color }) => (
-    <div className="p-4 space-y-3 text-sm theme-muted">
-      {steps.map(s => (
-        <div key={s.n} className="flex gap-3">
-          <span className={`w-6 h-6 rounded-full ${color} text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5`}>{s.n}</span>
-          <p className="leading-relaxed">{s.text}</p>
-        </div>
-      ))}
-    </div>
-  );
+function GatewayStep({ data, set, errors }) {
+  const isRazorpay = data.gateway === 'razorpay';
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <Field label="Which payment gateway?" required>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { id: 'razorpay', name: 'Razorpay',      desc: 'Best for India',          badge: 'UPI + Cards',    badgeColor: 'text-blue-600' },
-            { id: 'dodo',     name: 'Dodo Payments',  desc: 'Best for international',  badge: 'Visa / MC / Amex', badgeColor: 'text-purple-600' },
+            { id: 'razorpay', name: 'Razorpay',      desc: 'Best for India' },
+            { id: 'dodo',     name: 'Dodo Payments',  desc: 'Best for Global' },
           ].map(gw => (
             <button key={gw.id} onClick={() => set('gateway', gw.id)}
               className={`p-4 rounded-2xl border text-left transition-all ${
@@ -251,17 +258,52 @@ function GatewayStep({ data, set }) {
                   ? 'border-chai-500 bg-chai-50 dark:bg-chai-950/40 shadow-md'
                   : 'border-[var(--card-border)] bg-[var(--bg-subtle)] hover:border-chai-300'
               }`}>
-              {data.gateway === gw.id && <Check size={13} className="text-chai-500 mb-2"/>}
-              <p className="font-bold theme-text text-sm">{gw.name}</p>
+              <div className="flex justify-between items-start mb-2">
+                <p className="font-bold theme-text text-sm">{gw.name}</p>
+                {data.gateway === gw.id && <CheckCircle2 size={16} className="text-chai-500"/>}
+              </div>
               <p className="text-xs theme-muted">{gw.desc}</p>
             </button>
           ))}
         </div>
       </Field>
 
-      <Field label="Gateway Public Key" required hint={data.gateway === 'razorpay' ? 'Key ID (rzp_...)' : 'Product ID (prod_...)'}>
-        <Input value={data.gatewayKey} onChange={v => set('gatewayKey', v)} placeholder="Paste your key here"/>
-      </Field>
+      <div className="space-y-4">
+        <Field
+          label={isRazorpay ? "Razorpay Key ID" : "Dodo Product ID"}
+          required
+          error={errors.gatewayKey}
+          hint={isRazorpay ? "Starts with rzp_live_ or rzp_test_" : "Starts with prod_"}
+        >
+          <Input value={data.gatewayKey} onChange={v => set('gatewayKey', v)} placeholder={isRazorpay ? "rzp_live_..." : "prod_..."}/>
+        </Field>
+
+        {isRazorpay ? (
+          <InfoBox icon={Shield} color="blue" title="How to get your Razorpay Key ID">
+            <ol className="list-decimal ml-4 space-y-1 mt-2">
+              <li>Log in to your <strong>Razorpay Dashboard</strong>.</li>
+              <li>Go to <strong>Account & Settings</strong> → <strong>API Keys</strong>.</li>
+              <li>Copy the <strong>Key ID</strong>.</li>
+              <li className="text-red-500 font-bold italic">Never share or paste your Key Secret here!</li>
+            </ol>
+          </InfoBox>
+        ) : (
+          <InfoBox icon={Zap} color="blue" title="How to get your Dodo Product ID">
+            <ol className="list-decimal ml-4 space-y-1 mt-2">
+              <li>Log in to <strong>Dodo Payments</strong>.</li>
+              <li>Create a <strong>Product</strong> (One-time payment).</li>
+              <li>Copy the <strong>Product ID</strong> from the product list.</li>
+              <li>Ensure <strong>Static Payment Links</strong> are enabled.</li>
+            </ol>
+          </InfoBox>
+        )}
+
+        <InfoBox icon={AlertTriangle} color="amber" title="Security Warning">
+          Buy4Chai is a static site. This means your config file is public.
+          <strong> Only ever use Public/Client keys.</strong> If a gateway asks for a "Secret" or "Private" key,
+          do NOT put it in this project.
+        </InfoBox>
+      </div>
     </div>
   );
 }
@@ -361,10 +403,38 @@ export default function SetupPage({ dark, toggleDark }) {
     thankYouMessage: '',
   });
 
-  const set       = (k, v) => setData(d => ({ ...d, [k]: v }));
+  const [errors, setErrors] = useState({});
+
+  const set       = (k, v) => {
+    setData(d => ({ ...d, [k]: v }));
+    if (errors[k]) setErrors(prev => ({ ...prev, [k]: null }));
+  };
   const setSocial = (k, v) => setData(d => ({ ...d, socials: { ...d.socials, [k]: v } }));
 
-  const CurrentStep = STEP_COMPONENTS[step];
+  const validate = () => {
+    const newErrors = {};
+    if (step === 0) {
+      if (!data.name) newErrors.name = "Name is required";
+      if (!data.bio) newErrors.bio = "Bio is required";
+      if (data.avatar && !data.avatar.startsWith('http') && !data.avatar.startsWith('/')) {
+        newErrors.avatar = "Avatar must be a valid URL or local path (starting with /)";
+      }
+    }
+    if (step === 3) {
+      if (!data.gatewayKey) newErrors.gatewayKey = "Gateway key is required";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const nextStep = () => {
+    if (validate()) setStep(s => s + 1);
+  };
+
+  const CurrentStep = (props) => {
+    const Comp = STEP_COMPONENTS[step];
+    return <Comp {...props} errors={errors} />;
+  };
 
   return (
     <div className="min-h-screen theme-bg transition-colors duration-300">
@@ -401,7 +471,7 @@ export default function SetupPage({ dark, toggleDark }) {
         <div className="flex justify-between">
           <button onClick={() => setStep(s => s - 1)} disabled={step === 0} className="px-5 py-3 rounded-2xl border theme-text disabled:opacity-0">Back</button>
           {step < STEPS.length - 1
-            ? <button onClick={() => setStep(s => s + 1)} className="px-6 py-3 rounded-2xl bg-chai-500 text-white font-bold">Continue</button>
+            ? <button onClick={nextStep} className="px-6 py-3 rounded-2xl bg-chai-500 text-white font-bold">Continue</button>
             : <a href="/" className="px-6 py-3 rounded-2xl bg-chai-500 text-white font-bold">View Page</a>
           }
         </div>

@@ -61,29 +61,6 @@ export default {
   // 5. Theme Customization (Optional)
   accentColor: "#8B5E3C",
 
-  // theme: {
-  //   light: {
-  //     bg: "#FDF8F3",
-  //     bgSubtle: "#F5EDE2",
-  //     card: "#FFFFFF",
-  //     cardBorder: "#E6D5C3",
-  //     inputBg: "#F5EDE2",
-  //     textPrimary: "#3D2B1F",
-  //     textMuted: "#7C6A5B",
-  //     textFaint: "#A89080"
-  //   },
-  //   dark: {
-  //     bg: "#18130E",
-  //     bgSubtle: "#211810",
-  //     card: "#241B13",
-  //     cardBorder: "#3D2F24",
-  //     inputBg: "#2E2118",
-  //     textPrimary: "#F5EDE2",
-  //     textMuted: "#C2A88C",
-  //     textFaint: "#7C6550"
-  //   }
-  // },
-
-  // 6. Success Message
+  // Success Message
   thankYouMessage: "You made my day! Your support keeps me motivated to build and share more.",
 }
