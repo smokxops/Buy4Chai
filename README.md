@@ -71,28 +71,17 @@ Push your changes and connect your repo to **Vercel** or **Netlify**. It will au
 
 Choose a badge style that fits your project's aesthetic:
 
-### 1. The Mono-Chai (Minimalist Tech)
-A high-contrast, monospace badge designed for a professional developer aesthetic.
-```markdown
-[![Support me on Buy Me a Chai](https://your-deployment-url.vercel.app/badge.svg)](https://your-deployment-url.vercel.app)
-```
-
-### 2. The Bento-Box (Personalized)
-A segmented badge that showcases your name. Perfect for personal repos.
-```markdown
-[![Support [Name] on Buy Me a Chai](https://your-deployment-url.vercel.app/badges/personal.svg)](https://your-deployment-url.vercel.app)
-```
-
-### 3. The Shields.io (Classic)
-If you prefer the standard Markdown look, use this branded Shields.io snippet:
-```markdown
-[![Support me on Buy Me a Chai](https://img.shields.io/badge/Support-Buy4Chai-8B5E3C?style=for-the-badge&logo=coffee&logoColor=white)](https://your-deployment-url.vercel.app)
-```
+| Style | Preview | Markdown Snippet |
+| :--- | :--- | :--- |
+| **Mono-Chai** | ![Mono-Chai](public/badges/standard.svg) | `[![Support me on Buy Me a Chai](https://your-deployment-url.vercel.app/badge.svg)](https://your-deployment-url.vercel.app)` |
+| **Bento-Box** | ![Bento-Box](public/badges/personal.svg) | `[![Support me on Buy Me a Chai](https://your-deployment-url.vercel.app/badges/personal.svg)](https://your-deployment-url.vercel.app)` |
+| **Light Pill** | ![Light Pill](public/badges/buy4chai.svg) | `[![Buy4Chai](https://your-deployment-url.vercel.app/badges/buy4chai.svg)](https://your-deployment-url.vercel.app)` |
+| **Shields.io** | ![Shields](https://img.shields.io/badge/Support-Buy4Chai-8B5E3C?style=for-the-badge&logo=coffee&logoColor=white) | `[![Support](https://img.shields.io/badge/Support-Buy4Chai-8B5E3C?style=for-the-badge&logo=coffee&logoColor=white)](https://your-deployment-url.vercel.app)` |
 
 *(Replace `your-deployment-url.vercel.app` with your actual live URL).*
 
-
 ---
+
 
 ## 🏗️ Architecture
 
