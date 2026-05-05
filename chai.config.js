@@ -49,6 +49,13 @@ export default {
    * This file is visible to everyone once deployed.
    */
   gatewayKey: "rzp_test_XXXXXXXXXXXX", 
+
+  // UPI Direct (System B)
+  upi: {
+    enabled: true,
+    id: "yourname@upi",
+    name: "Arjun",
+  }, 
   
   // Dual-Currency Logic
   currency: "INR",          // Your gateway's native currency

@@ -97,6 +97,16 @@ Choose a badge style that fits your project's aesthetic:
 
 ---
 
+## 🤖 AI-Powered Gateway Integration
+
+Want to add a gateway that isn't supported yet? You can use an AI agent (like Antigravity, Claude, or Cursor) to do it for you in seconds.
+
+**The Prompt for your AI Agent:**
+> "Read `gateway.md` and the attached documentation for [Gateway Name]. Follow the architectural best practices and the 'Gateway Contract' defined in `gateway.md`. Decide whether to follow the Tier 1 (Redirect) or Tier 2 (SDK) flow based on the provided docs. Implement `src/gateways/[name].js` ensuring 100% static compliance and zero-backend logic."
+
+**User Tip:** Just clone this repo, open your AI agent, attach your payment gateway's documentation, and let the agent run. Provide it with your Public Key ID when asked, and you're ready to host. Simple as that.
+
+---
 
 ## 🏗️ Architecture
 

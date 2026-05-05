@@ -310,6 +310,35 @@ function GatewayStep({ data, set, errors }) {
           do NOT put it in this project.
         </InfoBox>
       </div>
+
+      <div className="pt-6 border-t border-[var(--card-border)]/50 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-bold theme-text text-sm flex items-center gap-2">
+              <Zap size={16} className="text-amber-500"/>
+              Enable UPI Direct
+            </p>
+            <p className="text-xs theme-muted">Allow supporters to pay via UPI QR/App (India only).</p>
+          </div>
+          <button
+            onClick={() => set('upiEnabled', !data.upiEnabled)}
+            className={`w-12 h-6 rounded-full transition-all relative ${data.upiEnabled ? 'bg-chai-500' : 'bg-gray-300 dark:bg-gray-700'}`}
+          >
+            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${data.upiEnabled ? 'left-7' : 'left-1'}`} />
+          </button>
+        </div>
+
+        {data.upiEnabled && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+            <Field label="UPI ID" required error={errors.upiId} hint="e.g. yourname@paytm or yourname@okaxis">
+              <Input value={data.upiId} onChange={v => set('upiId', v)} placeholder="username@bank"/>
+            </Field>
+            <Field label="Payee Name" required error={errors.upiName} hint="Your legal name as registered in your bank.">
+              <Input value={data.upiName} onChange={v => set('upiName', v)} placeholder="Arjun Sharma"/>
+            </Field>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }
@@ -380,6 +409,11 @@ function ConfigStep({ data }) {
     '  socials: ' + JSON.stringify(data.socials, null, 2) + ',',
     `  gateway: "${data.gateway}",`,
     `  gatewayKey: "${data.gatewayKey}",`,
+    `  upi: {`,
+    `    enabled: ${data.upiEnabled},`,
+    `    id: "${data.upiId}",`,
+    `    name: "${data.upiName}",`,
+    `  },`,
     `  currency: "${data.currency}",`,
     `  displayCurrency: "${data.displayCurrency}",`,
     `  exchangeRate: ${data.exchangeRate},`,
@@ -425,6 +459,7 @@ export default function SetupPage({ dark, toggleDark }) {
     story: '', images: [], projects: [],
     socials: { github: '', twitter: '', linkedin: '', website: '' },
     gateway: 'razorpay', gatewayKey: '',
+    upiEnabled: true, upiId: '', upiName: '',
     currency: 'INR', displayCurrency: 'USD', exchangeRate: 83.5,
     suggestedAmounts: [2, 5, 10, 25], defaultAmount: 5,
     thankYouMessage: '',

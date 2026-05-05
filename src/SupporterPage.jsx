@@ -9,6 +9,7 @@ import {
 import config from '../chai.config.js';
 import { initPayment as initRazorpay } from './gateways/razorpay.js';
 import { initPayment as initDodo, checkDodoReturn } from './gateways/dodo.js';
+import { initPayment as initUPI } from './gateways/upi-direct.js';
 
 /* ─── Shared UI Logic ─────────────────────────────────────────── */
 
@@ -87,6 +88,21 @@ export default function SupporterPage({ dark, toggleDark }) {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  /**
+   * Orchestrates the UPI payment flow
+   */
+  const handleUPI = () => {
+    if (!displayAmountUSD || displayAmountUSD < 0.5) {
+      setError('Please enter a valid amount (min $0.50).');
+      return;
+    }
+
+    // Always convert to INR for UPI as per user request
+    const amtINR = Math.round(displayAmountUSD * exchangeRate);
+    
+    initUPI(amtINR, config);
   };
 
   /**
@@ -418,6 +434,25 @@ export default function SupporterPage({ dark, toggleDark }) {
                   </>
                 )}
               </button>
+
+              {/* UPI Option - System B */}
+              {config.upi?.enabled && (
+                <div className="mt-4 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-[1px] flex-1 bg-[var(--card-border)]/50"></div>
+                    <span className="text-[10px] font-black theme-muted uppercase tracking-widest">Or pay via UPI</span>
+                    <div className="h-[1px] flex-1 bg-[var(--card-border)]/50"></div>
+                  </div>
+
+                  <button
+                    onClick={handleUPI}
+                    className="w-full bg-[var(--input-bg)] text-[var(--text-primary)] border border-[var(--card-border)] py-4 rounded-2xl text-base font-black hover:bg-[var(--bg-subtle)] transition-all flex items-center justify-center gap-2 group"
+                  >
+                    <Zap size={18} className="text-amber-500 fill-amber-500 group-hover:scale-110 transition-transform" />
+                    Pay with UPI (INR)
+                  </button>
+                </div>
+              )}
 
               <p className="mt-4 text-[10px] text-center text-[var(--text-faint)] font-medium italic">
                 * Exchange rate set by creator. Final amount may vary slightly based on your bank's rate.
