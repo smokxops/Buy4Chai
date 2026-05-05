@@ -4,40 +4,43 @@ import SetupPage from './SetupPage.jsx';
 import config from '../chai.config.js';
 
 /**
- * Simple hash router — no react-router needed.
- *   /         →  SupporterPage  (what supporters see)
- *   /#setup   →  SetupPage      (developer onboarding wizard)
+ * Lightweight SPA Router
+ * - /         → Supporter Facing Page
+ * - /#setup   → Developer Wizard (protected by setupKey)
  */
 export default function App() {
   const [hash, setHash]   = useState(window.location.hash);
+  
+  // Initialize dark mode based on system preference
   const [dark, setDark]   = useState(
     () => window.matchMedia('(prefers-color-scheme: dark)').matches
   );
 
-  // Keep hash state in sync with browser navigation
+  // Synchronize internal state with browser back/forward navigation
   useEffect(() => {
     const onHash = () => setHash(window.location.hash);
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
-  // Apply dark class to <html> whenever dark state changes
+  // Sync dark class on root element for Tailwind dark: modifiers
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
   }, [dark]);
 
   const toggleDark = () => setDark(d => !d);
 
-  // URL check for /#setup?key=...
+  // Extract setup key from URL fragment: /#setup?key=...
   const queryParams = new URLSearchParams(window.location.hash.split('?')[1]);
   const setupKey = queryParams.get('key');
   const expectedKey = import.meta.env.VITE_SETUP_KEY || config.setupKey;
 
-  // Only allow setup if it's enabled in config AND the key matches (if a key is configured)
+  // Gate setup page access: Must be enabled in config AND key must match if set
   const isSetup = hash.startsWith('#setup') &&
                   (config.showSetup !== false) &&
                   (!expectedKey || setupKey === expectedKey);
 
+  // Dynamic CSS Injection: Translates chai.config.js theme tokens into CSS variables
   const themeStyles = config.theme ? `
     :root {
       ${config.theme.light?.bg ? `--bg: ${config.theme.light.bg};` : ''}
@@ -70,3 +73,4 @@ export default function App() {
     </>
   );
 }
+

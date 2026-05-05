@@ -10,7 +10,8 @@ import config from '../chai.config.js';
 import { initPayment as initRazorpay } from './gateways/razorpay.js';
 import { initPayment as initDodo, checkDodoReturn } from './gateways/dodo.js';
 
-/* ─── helpers ─────────────────────────────────────────────────── */
+/* ─── Shared UI Logic ─────────────────────────────────────────── */
+
 const SOCIAL_URLS = {
   github:   (v) => `https://github.com/${v}`,
   twitter:  (v) => `https://twitter.com/${v}`,
@@ -20,10 +21,12 @@ const SOCIAL_URLS = {
 const SOCIAL_ICON  = { github: <Github size={16}/>, twitter: <Twitter size={16}/>, linkedin: <Linkedin size={16}/>, website: <Globe size={16}/> };
 const SOCIAL_LABEL = { github: 'GitHub', twitter: 'Twitter', linkedin: 'LinkedIn', website: 'Website' };
 
-/* ─── SupporterPage ───────────────────────────────────────────── */
+/**
+ * Main Supporter-Facing Component
+ */
 export default function SupporterPage({ dark, toggleDark }) {
   const [showPayment, setShowPayment] = useState(false);
-  const [isUSD, setIsUSD] = useState(true);
+  const [isUSD, setIsUSD] = useState(true); // Toggle between Global (USD) and Local (e.g. INR) view
   const [selected, setSelected] = useState(config.defaultAmount || 5);
   const [custom, setCustom] = useState('');
   const [isCustomMode, setIsCustomMode] = useState(false);
@@ -37,8 +40,10 @@ export default function SupporterPage({ dark, toggleDark }) {
 
   const suggestedAmounts = config.suggestedAmounts || [2, 5, 10, 25];
 
+  // Derived amount based on preset selection or custom input (always in USD internally)
   const displayAmountUSD = parseFloat(isCustomMode ? custom : selected) || 0;
 
+  // Lifecycle: Detect return from external payment gateways (e.g. Dodo)
   useEffect(() => {
     if (config.gateway === 'dodo') {
       const status = checkDodoReturn();
@@ -51,22 +56,27 @@ export default function SupporterPage({ dark, toggleDark }) {
   const enableCustom = () => { setIsCustomMode(true); setSelected(null); setError(''); };
   const onCustom     = (e)   => { setCustom(e.target.value); setError(''); };
 
+  /**
+   * Orchestrates the payment flow
+   */
   const handlePay = async () => {
     if (!displayAmountUSD || displayAmountUSD < 0.5) {
       setError('Please enter a valid amount (min $0.50).');
       return;
     }
 
-    // Convert to primary currency (e.g. INR) for the gateway
+    // Convert internal USD amount to Gateway's primary currency (e.g. INR)
     const amtPrimary = Math.round(displayAmountUSD * exchangeRate);
 
     setIsProcessing(true); setError(''); setSuccess(false);
     try {
       if (config.gateway === 'razorpay') {
+        // Razorpay handles checkout in-app via modal
         await initRazorpay(amtPrimary * 100, config);
         setSuccess(true);
         setShowPayment(false);
       } else if (config.gateway === 'dodo') {
+        // Dodo handles checkout via external redirect
         await initDodo(amtPrimary, config);
       } else {
         throw new Error(`Unknown gateway: "${config.gateway}"`);
@@ -79,6 +89,9 @@ export default function SupporterPage({ dark, toggleDark }) {
     }
   };
 
+  /**
+   * Locale-aware currency formatting
+   */
   const formatCurrency = (amount, currency) => {
     const locale = currency === 'INR' ? 'en-IN' : 'en-US';
     return new Intl.NumberFormat(locale, {
@@ -91,7 +104,7 @@ export default function SupporterPage({ dark, toggleDark }) {
   return (
     <div className="min-h-screen theme-bg transition-colors duration-300 font-sans selection:bg-chai-200 dark:selection:bg-chai-900 selection:text-chai-900 dark:selection:text-chai-100">
       
-      {/* Navigation */}
+      {/* Top Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-[var(--bg)]/80 border-b border-[var(--card-border)]/50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -108,10 +121,10 @@ export default function SupporterPage({ dark, toggleDark }) {
 
       <main className="max-w-6xl mx-auto px-6 pt-24 pb-24 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
         
-        {/* Left Column: Creator Narrative (Scrollable) */}
+        {/* Left Column: Creator Narrative & Portfolio */}
         <div className="lg:col-span-7 space-y-16">
 
-          {/* Hero Section */}
+          {/* Identity Section */}
           <section>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -150,7 +163,7 @@ export default function SupporterPage({ dark, toggleDark }) {
             </motion.div>
           </section>
 
-          {/* Story Section */}
+          {/* Deep-dive Narrative Section */}
           {config.story && (
             <section>
               <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2 uppercase tracking-widest text-xs opacity-50">
@@ -163,7 +176,7 @@ export default function SupporterPage({ dark, toggleDark }) {
             </section>
           )}
 
-          {/* Image Gallery */}
+          {/* Visual Showcase (Gallery) */}
           {config.images && config.images.length > 0 && (
             <section>
               <h2 className="text-xl font-bold text-[var(--text-primary)] mb-8 flex items-center gap-2 uppercase tracking-widest text-xs opacity-50">
@@ -180,7 +193,7 @@ export default function SupporterPage({ dark, toggleDark }) {
             </section>
           )}
 
-          {/* Pinned Projects */}
+          {/* Featured Projects Portfolio */}
           {config.projects && config.projects.length > 0 && (
             <section>
               <h2 className="text-xl font-bold text-[var(--text-primary)] mb-8 flex items-center gap-2 uppercase tracking-widest text-xs opacity-50">
@@ -212,13 +225,14 @@ export default function SupporterPage({ dark, toggleDark }) {
 
         </div>
 
-        {/* Right Column: Support Card (Sticky) */}
+        {/* Right Column: CTA / Sticky Support Card */}
         <div className="lg:col-span-5 lg:sticky lg:top-24">
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             className="theme-card border rounded-[2.5rem] p-8 lg:p-10 shadow-2xl shadow-black/5 relative overflow-hidden"
           >
+            {/* Background Gradient Glow */}
             <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-40 h-40 bg-chai-500 blur-[80px] opacity-10"></div>
 
             <div className="relative z-10 space-y-8">
@@ -264,7 +278,7 @@ export default function SupporterPage({ dark, toggleDark }) {
 
       </main>
 
-      {/* Payment Overlay */}
+      {/* Checkout Modal Overlay */}
       <AnimatePresence>
         {showPayment && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -294,22 +308,22 @@ export default function SupporterPage({ dark, toggleDark }) {
                 <p className="text-[var(--text-muted)] text-sm font-medium">Choose an amount to buy me a chai.</p>
               </div>
 
-              {/* Currency Toggle */}
+              {/* View Currency Toggle (Local vs Global display) */}
               <div className="flex items-center justify-between mb-6 p-3 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)]">
                 <div className="flex flex-col ml-1">
                   <span className="text-xs font-bold text-[var(--text-muted)] leading-tight">Showing {isUSD ? secondaryCurrency : primaryCurrency}</span>
-                  <span className="text-[9px] text-[var(--text-faint)] font-bold uppercase tracking-tighter">1 {secondaryCurrency} = {exchangeRate} {primaryCurrency}</span>
+                  <span className="text-[9px] text-[var(--text-faint)] font-bold uppercase tracking-tighter">1 {secondaryCurrency} ≈ {exchangeRate} {primaryCurrency}</span>
                 </div>
                 <button
                   onClick={() => setIsUSD(!isUSD)}
                   className="flex items-center gap-1.5 bg-[var(--text-primary)] text-[var(--bg)] px-3 py-1.5 rounded-lg text-[10px] font-black hover:opacity-90 transition-opacity"
                 >
                   <Repeat size={12} />
-                  {isUSD ? primaryCurrency : secondaryCurrency}
+                  Switch to {isUSD ? primaryCurrency : secondaryCurrency}
                 </button>
               </div>
 
-              {/* Amount Selection */}
+              {/* Suggested Presets Grid */}
               <div className="grid grid-cols-2 gap-3 mb-6">
                 {suggestedAmounts.map(amt => {
                   const isSelected = !isCustomMode && selected === amt;
@@ -336,7 +350,7 @@ export default function SupporterPage({ dark, toggleDark }) {
                 })}
               </div>
 
-              {/* Custom Amount */}
+              {/* Custom Input Trigger */}
               <div className="mb-8">
                 <button
                   onClick={enableCustom}
@@ -370,7 +384,7 @@ export default function SupporterPage({ dark, toggleDark }) {
                 </AnimatePresence>
               </div>
 
-              {/* Error Message */}
+              {/* Live Error Feedback */}
               <AnimatePresence>
                 {error && (
                   <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
@@ -381,7 +395,7 @@ export default function SupporterPage({ dark, toggleDark }) {
                 )}
               </AnimatePresence>
 
-              {/* Pay Button */}
+              {/* Dynamic Primary CTA */}
               <button
                 onClick={handlePay}
                 disabled={isProcessing}
@@ -413,7 +427,7 @@ export default function SupporterPage({ dark, toggleDark }) {
         )}
       </AnimatePresence>
 
-      {/* Success Message */}
+      {/* Success State Overlay */}
       <AnimatePresence>
         {success && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -440,7 +454,6 @@ export default function SupporterPage({ dark, toggleDark }) {
         )}
       </AnimatePresence>
 
-      {/* Footer */}
       <footer className="border-t border-[var(--card-border)]/50 bg-[var(--bg-subtle)]/50">
         <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           <div className="space-y-2">
@@ -463,3 +476,4 @@ export default function SupporterPage({ dark, toggleDark }) {
     </div>
   );
 }
+

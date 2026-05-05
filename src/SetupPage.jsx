@@ -8,6 +8,9 @@ import {
   MessageSquare, Coffee, Plus, Trash2, DollarSign
 } from 'lucide-react';
 
+/**
+ * Setup Wizard Steps Definition
+ */
 const STEPS = [
   { id: 'identity',  label: 'Identity',    icon: User },
   { id: 'narrative', label: 'Narrative',   icon: MessageSquare },
@@ -17,6 +20,9 @@ const STEPS = [
   { id: 'config',    label: 'Your Config', icon: Code2 },
 ];
 
+/**
+ * Clipboard fallback for non-HTTPS or older browsers
+ */
 function copyToClipboard(text) {
   navigator.clipboard.writeText(text).catch(() => {
     const el = document.createElement('textarea');
@@ -28,7 +34,7 @@ function copyToClipboard(text) {
   });
 }
 
-/* ---- Shared UI ---- */
+/* ---- Shared UI Components (Design System) ---- */
 
 function InfoBox({ icon: Icon = Info, color = 'blue', title, children }) {
   const colors = {
@@ -356,11 +362,12 @@ function CustomizeStep({ data, set }) {
   );
 }
 
-/* ---- Step 6: Generated Config ---- */
+/* ---- Step 6: Generated Config (Final Output) ---- */
 
 function ConfigStep({ data }) {
   const [copied, setCopied] = useState(false);
 
+  // Serializes the local state into a valid chai.config.js format
   const output = [
     '// chai.config.js — edit this and deploy',
     'export default {',
@@ -407,7 +414,7 @@ function ConfigStep({ data }) {
   );
 }
 
-/* ---- Root SetupPage ---- */
+/* ---- Root SetupPage Component ---- */
 
 const STEP_COMPONENTS = [IdentityStep, NarrativeStep, SocialsStep, GatewayStep, CustomizeStep, ConfigStep];
 
@@ -425,12 +432,16 @@ export default function SetupPage({ dark, toggleDark }) {
 
   const [errors, setErrors] = useState({});
 
+  // Centralized state update with error clearing
   const set       = (k, v) => {
     setData(d => ({ ...d, [k]: v }));
     if (errors[k]) setErrors(prev => ({ ...prev, [k]: null }));
   };
   const setSocial = (k, v) => setData(d => ({ ...d, socials: { ...d.socials, [k]: v } }));
 
+  /**
+   * Field Validation before proceeding to next step
+   */
   const validate = () => {
     const newErrors = {};
     if (step === 0) {
@@ -469,6 +480,7 @@ export default function SetupPage({ dark, toggleDark }) {
           </button>
         </header>
 
+        {/* Horizontal Step Indicator */}
         <div className="flex items-center gap-2 mb-10 overflow-x-auto pb-1">
           {STEPS.map((s, i) => (
             <button key={s.id} onClick={() => i <= step && setStep(i)}
@@ -480,6 +492,7 @@ export default function SetupPage({ dark, toggleDark }) {
           ))}
         </div>
 
+        {/* Step Transition Animation */}
         <motion.div key={step} initial={{opacity:0, x:20}} animate={{opacity:1, x:0}}
           className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl mb-6">
           <CurrentStep
@@ -488,6 +501,7 @@ export default function SetupPage({ dark, toggleDark }) {
           />
         </motion.div>
 
+        {/* Navigation Controls */}
         <div className="flex justify-between">
           <button onClick={() => setStep(s => s - 1)} disabled={step === 0} className="px-5 py-3 rounded-2xl border theme-text disabled:opacity-0">Back</button>
           {step < STEPS.length - 1
@@ -499,3 +513,4 @@ export default function SetupPage({ dark, toggleDark }) {
     </div>
   );
 }
+
