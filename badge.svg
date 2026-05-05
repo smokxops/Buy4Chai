@@ -1,37 +1,18 @@
-<svg width="240" height="48" viewBox="0 0 240 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="badgeBg" x1="0" y1="0" x2="240" y2="48" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#8B5E3C" />
-      <stop offset="100%" stop-color="#6D482F" />
-    </linearGradient>
-    <filter id="shadow" x="-2" y="-2" width="244" height="52">
-      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.2"/>
-    </filter>
-  </defs>
-
-  <!-- Background -->
-  <rect width="240" height="48" rx="12" fill="url(#badgeBg)" filter="url(#shadow)"/>
+<svg width="180" height="32" viewBox="0 0 180 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Minimalist, high-contrast design. No "glow" or complex gradients. -->
+  <rect width="180" height="32" rx="4" fill="#8B5E3C"/>
   
-  <!-- Logo Section (miniature of logo.svg) -->
-  <g transform="translate(10, 4) scale(0.1)">
-    <!-- Glass -->
-    <path d="M140 100L165 350C165 365 180 375 200 375C220 375 235 365 235 350L260 100" fill="white" fill-opacity="0.2" />
-    <!-- Tea -->
-    <path d="M144 140L165 345C165 358 180 368 200 368C220 368 235 358 235 345L256 140C256 140 200 155 144 140Z" fill="#E1954A" />
-    <!-- Highlights -->
-    <path d="M150 110C150 110 160 250 175 340" stroke="white" stroke-width="20" stroke-linecap="round" stroke-opacity="0.6" />
-    <!-- Steam -->
-    <g opacity="0.8">
-      <path d="M180 80C180 80 170 60 185 45" stroke="white" stroke-width="12" stroke-linecap="round" fill="none" />
-      <path d="M210 90C210 90 225 70 215 55" stroke="white" stroke-width="10" stroke-linecap="round" fill="none" />
-    </g>
+  <!-- Left accent for logo -->
+  <path d="M0 4C0 1.78947 1.78947 0 4 0H32V32H4C1.78947 32 0 30.2105 0 28V4Z" fill="#5F4029"/>
+
+  <!-- Simple Flat Logo -->
+  <g transform="translate(8, 6) scale(0.05)">
+    <path d="M140 100L165 350C165 365 180 375 200 375C220 375 235 365 235 350L260 100H140Z" fill="#FDF8F3"/>
+    <path d="M180 60C180 60 170 45 185 35M210 70C210 70 225 55 215 45" stroke="#FDF8F3" stroke-width="20" stroke-linecap="round"/>
   </g>
 
   <!-- Text -->
-  <text x="60" y="30" fill="#FDF8F3" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.01em;">
+  <text x="42" y="21" fill="#FDF8F3" style="font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">
     Buy me a chai
   </text>
-  
-  <!-- Subtle Border Shine -->
-  <rect x="0.5" y="0.5" width="239" height="47" rx="11.5" stroke="white" stroke-opacity="0.1" fill="none"/>
 </svg>

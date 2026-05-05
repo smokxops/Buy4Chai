@@ -1,0 +1,12 @@
+<svg width="120" height="28" viewBox="0 0 120 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="28" rx="14" fill="#FDF8F3" stroke="#8B5E3C" stroke-width="1.5"/>
+  
+  <!-- Mini Logo -->
+  <g transform="translate(10, 6) scale(0.04)">
+    <path d="M140 100L165 350C165 365 180 375 200 375C220 375 235 365 235 350L260 100H140Z" fill="#8B5E3C"/>
+  </g>
+
+  <text x="32" y="19" fill="#8B5E3C" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; font-weight: 800; letter-spacing: -0.02em;">
+    Buy4Chai
+  </text>
+</svg>
