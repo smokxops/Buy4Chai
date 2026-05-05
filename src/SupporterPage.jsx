@@ -248,7 +248,7 @@ export default function SupporterPage({ dark, toggleDark }) {
                   onClick={() => setShowPayment(true)}
                   className="w-full bg-[var(--text-primary)] text-[var(--bg)] py-5 rounded-2xl text-xl font-black hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-black/10 flex items-center justify-center gap-3"
                 >
-                  <Coffee size={24} />
+                  <img src="/logo.svg" alt="Chai" className="w-6 h-6" />
                   Buy me a chai
                 </button>
                 <div className="flex items-center justify-center gap-2 text-xs font-bold text-[var(--text-faint)] uppercase tracking-widest">
