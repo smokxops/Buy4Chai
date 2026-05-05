@@ -4,7 +4,7 @@ import {
   Github, Twitter, Globe, Linkedin,
   ShieldCheck, Heart, Loader2, AlertCircle, Sun, Moon, Check,
   ExternalLink, ArrowRight, MessageSquare, Image as ImageIcon,
-  Coffee, X, Repeat
+  Coffee, X, Repeat, Zap
 } from 'lucide-react';
 import config from '../chai.config.js';
 import { initPayment as initRazorpay } from './gateways/razorpay.js';
