@@ -42,13 +42,20 @@ export default {
   },
 
   // --- Payment Infrastructure ---
-  gateway: "razorpay", // Options: "razorpay", "dodo"
+  gateway: "razorpay", // Options: "razorpay", "dodo", "manual-links"
   
   /**
    * IMPORTANT: Use PUBLIC Keys only.
    * This file is visible to everyone once deployed.
    */
   gatewayKey: "rzp_test_XXXXXXXXXXXX", 
+
+  // Required ONLY if gateway is "manual-links"
+  // Map your native currency amounts (e.g., INR) to payment links from your dashboard
+  paymentLinks: {
+    // 167: "https://rzp.io/l/link-for-167-inr",
+    // 418: "https://rzp.io/l/link-for-418-inr",
+  },
 
   // UPI Direct (System B)
   upi: {
