@@ -1,5 +1,12 @@
 // src/gateways/dodo.js
 
+export const gatewayCapabilities = {
+  supportsCustomAmount: false,
+  requiresPresetLinks: false,
+  verificationType: "redirect",
+  tier: 1,
+};
+
 /**
  * Initiates Dodo Payments via external redirect
  */

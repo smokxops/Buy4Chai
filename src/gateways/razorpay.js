@@ -1,5 +1,12 @@
 // src/gateways/razorpay.js
 
+export const gatewayCapabilities = {
+  supportsCustomAmount: true,
+  requiresPresetLinks: false,
+  verificationType: "client",
+  tier: 2,
+};
+
 /**
  * Orchestrates the Razorpay checkout flow
  * @param {number} amount - Amount in paise (e.g. 5000 for ₹50)

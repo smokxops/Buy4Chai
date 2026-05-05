@@ -7,9 +7,10 @@ import {
   Coffee, X, Repeat, Zap
 } from 'lucide-react';
 import config from '../chai.config.js';
-import { initPayment as initRazorpay } from './gateways/razorpay.js';
-import { initPayment as initDodo, checkDodoReturn } from './gateways/dodo.js';
-import { getUPIUrl } from './gateways/upi-direct.js';
+import { initPayment as initRazorpay, gatewayCapabilities as razorpayCaps } from './gateways/razorpay.js';
+import { initPayment as initDodo, checkDodoReturn, gatewayCapabilities as dodoCaps } from './gateways/dodo.js';
+import { getUPIUrl, gatewayCapabilities as upiCaps } from './gateways/upi-direct.js';
+import { initPayment as initManual, gatewayCapabilities as manualCaps } from './gateways/manual-links.js';
 
 /* ─── Shared UI Logic ─────────────────────────────────────────── */
 
@@ -39,8 +40,12 @@ export default function SupporterPage({ dark, toggleDark }) {
   const exchangeRate = config.exchangeRate || 80;
   const primaryCurrency = config.currency || 'INR';
   const secondaryCurrency = config.displayCurrency || 'USD';
-
   const suggestedAmounts = config.suggestedAmounts || [2, 5, 10, 25];
+
+  const currentGatewayCaps = config.gateway === 'razorpay' ? razorpayCaps : 
+                            (config.gateway === 'dodo' ? dodoCaps : 
+                            (config.gateway === 'manual-links' ? manualCaps : null));
+  const supportsCustom = currentGatewayCaps?.supportsCustomAmount ?? upiCaps.supportsCustomAmount;
 
   // Derived amount based on preset selection or custom input (always in USD internally)
   const displayAmountUSD = parseFloat(isCustomMode ? custom : selected) || 0;
@@ -80,6 +85,9 @@ export default function SupporterPage({ dark, toggleDark }) {
       } else if (config.gateway === 'dodo') {
         // Dodo handles checkout via external redirect
         await initDodo(amtPrimary, config);
+      } else if (config.gateway === 'manual-links') {
+        // Manual links handle checkout via external redirect
+        await initManual(amtPrimary, config);
       } else {
         throw new Error(`Unknown gateway: "${config.gateway}"`);
       }
@@ -401,38 +409,40 @@ export default function SupporterPage({ dark, toggleDark }) {
               </div>
 
               {/* Custom Input Trigger */}
-              <div className="mb-8">
-                <button
-                  onClick={enableCustom}
-                  className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${isCustomMode ? 'border-[var(--text-primary)] bg-[var(--bg)] ring-2 ring-[var(--text-primary)]/10' : 'border-[var(--card-border)] bg-[var(--input-bg)] hover:bg-[var(--bg-subtle)]'}`}
-                >
-                  <span className={`font-bold text-sm ${isCustomMode ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>Custom Amount (USD)</span>
-                  {isCustomMode && <Check size={18} className="text-[var(--text-primary)]" />}
-                </button>
-                <AnimatePresence>
-                  {isCustomMode && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                      <div className="pt-4 relative">
-                        <span className="absolute left-5 top-[62%] -translate-y-1/2 text-[var(--text-muted)] font-black text-xl select-none">$</span>
-                        <input
-                          type="number"
-                          min="0.5"
-                          step="0.01"
-                          inputMode="decimal"
-                          autoFocus
-                          placeholder="0.00"
-                          value={custom}
-                          onChange={onCustom}
-                          className="w-full bg-[var(--input-bg)] text-[var(--text-primary)] text-2xl font-black pl-10 pr-6 py-4 rounded-2xl border border-[var(--card-border)] focus:outline-none focus:border-[var(--text-primary)] transition-all placeholder:text-[var(--text-faint)]"
-                        />
-                        <div className="mt-2 text-right text-xs font-bold text-[var(--text-muted)]">
-                          ≈ {formatCurrency(Math.round((parseFloat(custom) || 0) * exchangeRate), primaryCurrency)}
+              {supportsCustom && (
+                <div className="mb-8">
+                  <button
+                    onClick={enableCustom}
+                    className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${isCustomMode ? 'border-[var(--text-primary)] bg-[var(--bg)] ring-2 ring-[var(--text-primary)]/10' : 'border-[var(--card-border)] bg-[var(--input-bg)] hover:bg-[var(--bg-subtle)]'}`}
+                  >
+                    <span className={`font-bold text-sm ${isCustomMode ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>Custom Amount (USD)</span>
+                    {isCustomMode && <Check size={18} className="text-[var(--text-primary)]" />}
+                  </button>
+                  <AnimatePresence>
+                    {isCustomMode && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="pt-4 relative">
+                          <span className="absolute left-5 top-[62%] -translate-y-1/2 text-[var(--text-muted)] font-black text-xl select-none">$</span>
+                          <input
+                            type="number"
+                            min="0.5"
+                            step="0.01"
+                            inputMode="decimal"
+                            autoFocus
+                            placeholder="0.00"
+                            value={custom}
+                            onChange={onCustom}
+                            className="w-full bg-[var(--input-bg)] text-[var(--text-primary)] text-2xl font-black pl-10 pr-6 py-4 rounded-2xl border border-[var(--card-border)] focus:outline-none focus:border-[var(--text-primary)] transition-all placeholder:text-[var(--text-faint)]"
+                          />
+                          <div className="mt-2 text-right text-xs font-bold text-[var(--text-muted)]">
+                            ≈ {formatCurrency(Math.round((parseFloat(custom) || 0) * exchangeRate), primaryCurrency)}
+                          </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
 
               {/* Live Error Feedback */}
               <AnimatePresence>
