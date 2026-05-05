@@ -255,8 +255,9 @@ function GatewayStep({ data, set, errors }) {
       <Field label="Which payment gateway?" required>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { id: 'razorpay', name: 'Razorpay',      desc: 'Best for India' },
-            { id: 'dodo',     name: 'Dodo Payments',  desc: 'Best for Global' },
+            { id: 'razorpay',     name: 'Razorpay',      desc: 'Best for India' },
+            { id: 'dodo',         name: 'Dodo Payments', desc: 'Best for Global' },
+            { id: 'manual-links', name: 'Manual Links', desc: 'Tier 0 / Dashboard' },
           ].map(gw => (
             <button key={gw.id} onClick={() => set('gateway', gw.id)}
               className={`p-4 rounded-2xl border text-left transition-all ${
@@ -275,14 +276,39 @@ function GatewayStep({ data, set, errors }) {
       </Field>
 
       <div className="space-y-4">
-        <Field
-          label={isRazorpay ? "Razorpay Key ID" : "Dodo Product ID"}
-          required
-          error={errors.gatewayKey}
-          hint={isRazorpay ? "Starts with rzp_live_ or rzp_test_" : "Starts with prod_"}
-        >
-          <Input value={data.gatewayKey} onChange={v => set('gatewayKey', v)} placeholder={isRazorpay ? "rzp_live_..." : "prod_..."}/>
-        </Field>
+        {data.gateway !== 'manual-links' && (
+          <Field
+            label={isRazorpay ? "Razorpay Key ID" : "Dodo Product ID"}
+            required
+            error={errors.gatewayKey}
+            hint={isRazorpay ? "Starts with rzp_live_ or rzp_test_" : "Starts with prod_"}
+          >
+            <Input value={data.gatewayKey} onChange={v => set('gatewayKey', v)} placeholder={isRazorpay ? "rzp_live_..." : "prod_..."}/>
+          </Field>
+        )}
+
+        {data.gateway === 'manual-links' && (
+          <div className="space-y-4">
+            <InfoBox icon={Link2} color="blue" title="Configure Manual Payment Links">
+              Since you've selected Manual Links (Tier 0), you need to provide a direct payment link for each suggested amount.
+            </InfoBox>
+            {data.suggestedAmounts.map(amt => {
+              const inrAmt = Math.round(amt * data.exchangeRate);
+              return (
+                <Field key={amt} label={`Link for ${inrAmt} INR ($${amt} USD)`}>
+                  <Input 
+                    value={data.paymentLinks[inrAmt] || ''} 
+                    onChange={v => {
+                      const next = { ...data.paymentLinks, [inrAmt]: v };
+                      set('paymentLinks', next);
+                    }} 
+                    placeholder="https://rzp.io/l/..."
+                  />
+                </Field>
+              );
+            })}
+          </div>
+        )}
 
         {isRazorpay ? (
           <InfoBox icon={Shield} color="blue" title="How to get your Razorpay Key ID">
@@ -397,7 +423,7 @@ function ConfigStep({ data }) {
   const [copied, setCopied] = useState(false);
 
   // Serializes the local state into a valid chai.config.js format
-  const output = [
+  const outputArr = [
     '// chai.config.js — edit this and deploy',
     'export default {',
     `  name: ${JSON.stringify(data.name)},`,
@@ -408,7 +434,15 @@ function ConfigStep({ data }) {
     '  projects: ' + JSON.stringify(data.projects, null, 2) + ',',
     '  socials: ' + JSON.stringify(data.socials, null, 2) + ',',
     `  gateway: "${data.gateway}",`,
-    `  gatewayKey: "${data.gatewayKey}",`,
+  ];
+
+  if (data.gateway === 'manual-links') {
+    outputArr.push(`  paymentLinks: ${JSON.stringify(data.paymentLinks, null, 2)},`);
+  } else {
+    outputArr.push(`  gatewayKey: "${data.gatewayKey}",`);
+  }
+
+  outputArr.push(
     `  upi: {`,
     `    enabled: ${data.upiEnabled},`,
     `    id: "${data.upiId}",`,
@@ -423,7 +457,9 @@ function ConfigStep({ data }) {
     `  showSetup: false, // Set to true to re-enable the /#setup route`,
     `  setupKey: "${Math.random().toString(36).substring(2, 10)}", // Secret key for /#setup?key=...`,
     '}'
-  ].join('\n');
+  );
+
+  const output = outputArr.join('\n');
 
   return (
     <div className="space-y-5">
@@ -459,6 +495,7 @@ export default function SetupPage({ dark, toggleDark }) {
     story: '', images: [], projects: [],
     socials: { github: '', twitter: '', linkedin: '', website: '' },
     gateway: 'razorpay', gatewayKey: '',
+    paymentLinks: {},
     upiEnabled: true, upiId: '', upiName: '',
     currency: 'INR', displayCurrency: 'USD', exchangeRate: 83.5,
     suggestedAmounts: [2, 5, 10, 25], defaultAmount: 5,
@@ -487,7 +524,15 @@ export default function SetupPage({ dark, toggleDark }) {
       }
     }
     if (step === 3) {
-      if (!data.gatewayKey) newErrors.gatewayKey = "Gateway key is required";
+      if (data.gateway !== 'manual-links' && !data.gatewayKey) {
+        newErrors.gatewayKey = "Gateway key is required";
+      }
+      if (data.gateway === 'manual-links') {
+        const hasLinks = Object.values(data.paymentLinks).some(l => l && l.startsWith('http'));
+        if (!hasLinks) {
+          newErrors.gatewayKey = "At least one valid payment link is required";
+        }
+      }
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
