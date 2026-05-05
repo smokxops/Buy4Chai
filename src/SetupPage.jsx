@@ -5,9 +5,12 @@ import {
   Check, ChevronRight, ChevronLeft, Copy, ExternalLink,
   Github, Twitter, Globe, Linkedin,
   AlertTriangle, Info, CheckCircle2, Zap, Shield, Image as ImageIcon,
-  MessageSquare, Coffee, Plus, Trash2, DollarSign
+  MessageSquare, Coffee, Plus, Trash2, DollarSign, Sun, Moon
 } from 'lucide-react';
 
+/**
+ * Setup Wizard Steps Definition
+ */
 const STEPS = [
   { id: 'identity',  label: 'Identity',    icon: User },
   { id: 'narrative', label: 'Narrative',   icon: MessageSquare },
@@ -17,6 +20,9 @@ const STEPS = [
   { id: 'config',    label: 'Your Config', icon: Code2 },
 ];
 
+/**
+ * Clipboard fallback for non-HTTPS or older browsers
+ */
 function copyToClipboard(text) {
   navigator.clipboard.writeText(text).catch(() => {
     const el = document.createElement('textarea');
@@ -28,7 +34,7 @@ function copyToClipboard(text) {
   });
 }
 
-/* ---- Shared UI ---- */
+/* ---- Shared UI Components (Design System) ---- */
 
 function InfoBox({ icon: Icon = Info, color = 'blue', title, children }) {
   const colors = {
@@ -130,7 +136,7 @@ function IdentityStep({ data, set, errors }) {
 
 /* ---- Step 2: Narrative (Story & Projects) ---- */
 
-function NarrativeStep({ data, set }) {
+function NarrativeStep({ data, set, errors }) {
   const addImage = () => set('images', [...data.images, '']);
   const updateImage = (i, v) => {
     const next = [...data.images];
@@ -204,9 +210,13 @@ function NarrativeStep({ data, set }) {
                   </button>
                 </div>
               </div>
-              <Input value={p.name} onChange={v => updateProject(i, 'name', v)} placeholder="Project Name"/>
+              <Field label="Project Name" required error={errors[`project_${i}_name`]}>
+                <Input value={p.name} onChange={v => updateProject(i, 'name', v)} placeholder="Project Name"/>
+              </Field>
               <Input value={p.description} onChange={v => updateProject(i, 'description', v)} placeholder="Short description"/>
-              <Input value={p.link} onChange={v => updateProject(i, 'link', v)} placeholder="https://github.com/..."/>
+              <Field label="Project Link" error={errors[`project_${i}_link`]}>
+                <Input value={p.link} onChange={v => updateProject(i, 'link', v)} placeholder="https://github.com/..."/>
+              </Field>
               <Input value={p.image} onChange={v => updateProject(i, 'image', v)} placeholder="Preview Image URL"/>
             </div>
           ))}
@@ -249,8 +259,9 @@ function GatewayStep({ data, set, errors }) {
       <Field label="Which payment gateway?" required>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { id: 'razorpay', name: 'Razorpay',      desc: 'Best for India' },
-            { id: 'dodo',     name: 'Dodo Payments',  desc: 'Best for Global' },
+            { id: 'razorpay',     name: 'Razorpay',      desc: 'Best for India' },
+            { id: 'dodo',         name: 'Dodo Payments', desc: 'Best for Global' },
+            { id: 'manual-links', name: 'Manual Links', desc: 'Tier 0 / Dashboard' },
           ].map(gw => (
             <button key={gw.id} onClick={() => set('gateway', gw.id)}
               className={`p-4 rounded-2xl border text-left transition-all ${
@@ -269,14 +280,39 @@ function GatewayStep({ data, set, errors }) {
       </Field>
 
       <div className="space-y-4">
-        <Field
-          label={isRazorpay ? "Razorpay Key ID" : "Dodo Product ID"}
-          required
-          error={errors.gatewayKey}
-          hint={isRazorpay ? "Starts with rzp_live_ or rzp_test_" : "Starts with prod_"}
-        >
-          <Input value={data.gatewayKey} onChange={v => set('gatewayKey', v)} placeholder={isRazorpay ? "rzp_live_..." : "prod_..."}/>
-        </Field>
+        {data.gateway !== 'manual-links' && (
+          <Field
+            label={isRazorpay ? "Razorpay Key ID" : "Dodo Product ID"}
+            required
+            error={errors.gatewayKey}
+            hint={isRazorpay ? "Starts with rzp_live_ or rzp_test_" : "Starts with prod_"}
+          >
+            <Input value={data.gatewayKey} onChange={v => set('gatewayKey', v)} placeholder={isRazorpay ? "rzp_live_..." : "prod_..."}/>
+          </Field>
+        )}
+
+        {data.gateway === 'manual-links' && (
+          <div className="space-y-4">
+            <InfoBox icon={Link2} color="blue" title="Configure Manual Payment Links">
+              Since you've selected Manual Links (Tier 0), you need to provide a direct payment link for each suggested amount.
+            </InfoBox>
+            {data.suggestedAmounts.map(amt => {
+              const inrAmt = Math.round(amt * data.exchangeRate);
+              return (
+                <Field key={amt} label={`Link for ${inrAmt} INR ($${amt} USD)`}>
+                  <Input 
+                    value={data.paymentLinks[inrAmt] || ''} 
+                    onChange={v => {
+                      const next = { ...data.paymentLinks, [inrAmt]: v };
+                      set('paymentLinks', next);
+                    }} 
+                    placeholder="https://rzp.io/l/..."
+                  />
+                </Field>
+              );
+            })}
+          </div>
+        )}
 
         {isRazorpay ? (
           <InfoBox icon={Shield} color="blue" title="How to get your Razorpay Key ID">
@@ -304,13 +340,42 @@ function GatewayStep({ data, set, errors }) {
           do NOT put it in this project.
         </InfoBox>
       </div>
+
+      <div className="pt-6 border-t border-[var(--card-border)]/50 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-bold theme-text text-sm flex items-center gap-2">
+              <Zap size={16} className="text-amber-500"/>
+              Enable UPI Direct
+            </p>
+            <p className="text-xs theme-muted">Allow supporters to pay via UPI QR/App (India only).</p>
+          </div>
+          <button
+            onClick={() => set('upiEnabled', !data.upiEnabled)}
+            className={`w-12 h-6 rounded-full transition-all relative ${data.upiEnabled ? 'bg-chai-500' : 'bg-gray-300 dark:bg-gray-700'}`}
+          >
+            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${data.upiEnabled ? 'left-7' : 'left-1'}`} />
+          </button>
+        </div>
+
+        {data.upiEnabled && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+            <Field label="UPI ID" required error={errors.upiId} hint="e.g. yourname@paytm or yourname@okaxis">
+              <Input value={data.upiId} onChange={v => set('upiId', v)} placeholder="username@bank"/>
+            </Field>
+            <Field label="Payee Name" required error={errors.upiName} hint="Your legal name as registered in your bank.">
+              <Input value={data.upiName} onChange={v => set('upiName', v)} placeholder="Arjun Sharma"/>
+            </Field>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }
 
 /* ---- Step 5: Customize ---- */
 
-function CustomizeStep({ data, set }) {
+function CustomizeStep({ data, set, errors }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
@@ -322,13 +387,13 @@ function CustomizeStep({ data, set }) {
         </Field>
       </div>
 
-      <Field label="Exchange Rate" hint={`1 ${data.displayCurrency} = X ${data.currency}`}>
+      <Field label="Exchange Rate" required error={errors.exchangeRate} hint={`1 ${data.displayCurrency} = X ${data.currency}`}>
         <Input
           type="number"
           value={data.exchangeRate}
           onChange={v => {
             const parsed = parseFloat(v);
-            if (Number.isFinite(parsed) && parsed > 0) {
+            if (Number.isFinite(parsed)) {
               set('exchangeRate', parsed);
             } else if (v === '') {
               set('exchangeRate', '');
@@ -338,7 +403,7 @@ function CustomizeStep({ data, set }) {
         />
       </Field>
 
-      <Field label="Suggested Amounts (USD)" hint="Comma-separated values in USD.">
+      <Field label="Suggested Amounts (USD)" required error={errors.suggestedAmounts} hint="Comma-separated values in USD.">
         <Input value={data.suggestedAmounts.join(', ')}
           onChange={v => set('suggestedAmounts', v.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n)))}
           placeholder="2, 5, 10, 25"/>
@@ -356,12 +421,13 @@ function CustomizeStep({ data, set }) {
   );
 }
 
-/* ---- Step 6: Generated Config ---- */
+/* ---- Step 6: Generated Config (Final Output) ---- */
 
 function ConfigStep({ data }) {
   const [copied, setCopied] = useState(false);
 
-  const output = [
+  // Serializes the local state into a valid chai.config.js format
+  const outputArr = [
     '// chai.config.js — edit this and deploy',
     'export default {',
     `  name: ${JSON.stringify(data.name)},`,
@@ -372,7 +438,20 @@ function ConfigStep({ data }) {
     '  projects: ' + JSON.stringify(data.projects, null, 2) + ',',
     '  socials: ' + JSON.stringify(data.socials, null, 2) + ',',
     `  gateway: "${data.gateway}",`,
-    `  gatewayKey: "${data.gatewayKey}",`,
+  ];
+
+  if (data.gateway === 'manual-links') {
+    outputArr.push(`  paymentLinks: ${JSON.stringify(data.paymentLinks, null, 2)},`);
+  } else {
+    outputArr.push(`  gatewayKey: "${data.gatewayKey}",`);
+  }
+
+  outputArr.push(
+    `  upi: {`,
+    `    enabled: ${data.upiEnabled},`,
+    `    id: "${data.upiId}",`,
+    `    name: "${data.upiName}",`,
+    `  },`,
     `  currency: "${data.currency}",`,
     `  displayCurrency: "${data.displayCurrency}",`,
     `  exchangeRate: ${data.exchangeRate},`,
@@ -382,7 +461,9 @@ function ConfigStep({ data }) {
     `  showSetup: false, // Set to true to re-enable the /#setup route`,
     `  setupKey: "${Math.random().toString(36).substring(2, 10)}", // Secret key for /#setup?key=...`,
     '}'
-  ].join('\n');
+  );
+
+  const output = outputArr.join('\n');
 
   return (
     <div className="space-y-5">
@@ -407,17 +488,18 @@ function ConfigStep({ data }) {
   );
 }
 
-/* ---- Root SetupPage ---- */
+/* ---- Root SetupPage Component ---- */
 
 const STEP_COMPONENTS = [IdentityStep, NarrativeStep, SocialsStep, GatewayStep, CustomizeStep, ConfigStep];
 
 export default function SetupPage({ dark, toggleDark }) {
-  const [step, setStep] = useState(0);
   const [data, setData] = useState({
     name: '', bio: '', avatar: '',
     story: '', images: [], projects: [],
     socials: { github: '', twitter: '', linkedin: '', website: '' },
     gateway: 'razorpay', gatewayKey: '',
+    paymentLinks: {},
+    upiEnabled: true, upiId: '', upiName: '',
     currency: 'INR', displayCurrency: 'USD', exchangeRate: 83.5,
     suggestedAmounts: [2, 5, 10, 25], defaultAmount: 5,
     thankYouMessage: '',
@@ -425,77 +507,152 @@ export default function SetupPage({ dark, toggleDark }) {
 
   const [errors, setErrors] = useState({});
 
+  // Centralized state update with error clearing
   const set       = (k, v) => {
     setData(d => ({ ...d, [k]: v }));
     if (errors[k]) setErrors(prev => ({ ...prev, [k]: null }));
   };
   const setSocial = (k, v) => setData(d => ({ ...d, socials: { ...d.socials, [k]: v } }));
 
+  /**
+   * Final Validation before "Done"
+   */
   const validate = () => {
     const newErrors = {};
-    if (step === 0) {
-      if (!data.name) newErrors.name = "Name is required";
-      if (!data.bio) newErrors.bio = "Bio is required";
-      if (data.avatar && !data.avatar.startsWith('http') && !data.avatar.startsWith('/')) {
-        newErrors.avatar = "Avatar must be a valid URL or local path (starting with /)";
+    
+    // Identity
+    if (!data.name) newErrors.name = "Name is required";
+    if (!data.bio) newErrors.bio = "Bio is required";
+    if (data.avatar && !data.avatar.startsWith('http') && !data.avatar.startsWith('/')) {
+      newErrors.avatar = "Avatar must be a valid URL or local path";
+    }
+
+    // Projects
+    data.projects.forEach((p, i) => {
+      if (!p.name) newErrors[`project_${i}_name`] = "Project name is required";
+      if (p.link && !p.link.startsWith('http') && p.link !== '#') {
+        newErrors[`project_${i}_link`] = "Link must be a valid URL or #";
+      }
+    });
+
+    // Gateway
+    if (data.gateway !== 'manual-links' && !data.gatewayKey) {
+      newErrors.gatewayKey = "Gateway key is required";
+    }
+    if (data.gateway === 'razorpay' && data.gatewayKey && String(data.gatewayKey).includes('secret')) {
+      newErrors.gatewayKey = "Wait! This looks like a Secret Key. Only use the Key ID (starts with rzp_).";
+    }
+    if (data.gateway === 'manual-links') {
+      const hasLinks = Object.values(data.paymentLinks).some(l => l && l.startsWith('http'));
+      if (!hasLinks) {
+        newErrors.gatewayKey = "At least one valid payment link is required";
       }
     }
-    if (step === 3) {
-      if (!data.gatewayKey) newErrors.gatewayKey = "Gateway key is required";
+
+    // Customization
+    if (!data.exchangeRate || data.exchangeRate <= 0) {
+      newErrors.exchangeRate = "Exchange rate must be a positive number";
     }
+    if (data.suggestedAmounts.length === 0) {
+      newErrors.suggestedAmounts = "At least one suggested amount is required";
+    }
+
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const nextStep = () => {
-    if (validate()) setStep(s => s + 1);
-  };
-
-  const CurrentStep = (props) => {
-    const Comp = STEP_COMPONENTS[step];
-    return <Comp {...props} errors={errors} />;
+    const isValid = Object.keys(newErrors).length === 0;
+    if (!isValid) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    return isValid;
   };
 
   return (
     <div className="min-h-screen theme-bg transition-colors duration-300">
-      <div className="max-w-2xl mx-auto px-5 py-10">
+      <div className="max-w-3xl mx-auto px-5 py-10">
         <header className="flex justify-between items-center mb-10">
-          <div className="flex items-center gap-3">
+          <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img src="/logo.svg" alt="Buy4Chai" className="w-9 h-9"/>
             <p className="font-bold theme-text text-lg">Setup Wizard</p>
-          </div>
-          <button onClick={toggleDark} className="w-10 h-10 flex items-center justify-center rounded-full theme-card border shadow-sm">
-            {dark ? '☀️' : '🌙'}
+          </a>
+          <button 
+            onClick={toggleDark} 
+            className="w-10 h-10 flex items-center justify-center rounded-full theme-card border shadow-sm hover:border-chai-500 transition-all"
+            title="Toggle Dark Mode"
+          >
+            {dark ? <Sun size={18} className="text-amber-500"/> : <Moon size={18}/>}
           </button>
         </header>
 
-        <div className="flex items-center gap-2 mb-10 overflow-x-auto pb-1">
-          {STEPS.map((s, i) => (
-            <button key={s.id} onClick={() => i <= step && setStep(i)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
-                i === step ? 'bg-chai-500 text-white' : i < step ? 'bg-chai-100 dark:bg-chai-900/50 text-chai-600' : 'bg-[var(--bg-subtle)] theme-muted'
-              }`}>
-              <s.icon size={13}/> <span className="hidden sm:inline">{s.label}</span>
-            </button>
-          ))}
-        </div>
+        <div className="space-y-12 pb-20">
+          <section className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl">
+            <h2 className="text-xl font-black theme-text mb-6 flex items-center gap-2">
+              <User size={20} className="text-chai-500"/>
+              1. Identity
+            </h2>
+            <IdentityStep data={data} set={set} errors={errors} />
+          </section>
 
-        <motion.div key={step} initial={{opacity:0, x:20}} animate={{opacity:1, x:0}}
-          className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl mb-6">
-          <CurrentStep
-            data={step === 2 ? data.socials : data}
-            set={step === 2 ? setSocial : set}
-          />
-        </motion.div>
+          <section className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl">
+            <h2 className="text-xl font-black theme-text mb-6 flex items-center gap-2">
+              <MessageSquare size={20} className="text-chai-500"/>
+              2. Narrative
+            </h2>
+            <NarrativeStep data={data} set={set} errors={errors} />
+          </section>
 
-        <div className="flex justify-between">
-          <button onClick={() => setStep(s => s - 1)} disabled={step === 0} className="px-5 py-3 rounded-2xl border theme-text disabled:opacity-0">Back</button>
-          {step < STEPS.length - 1
-            ? <button onClick={nextStep} className="px-6 py-3 rounded-2xl bg-chai-500 text-white font-bold">Continue</button>
-            : <a href="/" className="px-6 py-3 rounded-2xl bg-chai-500 text-white font-bold">View Page</a>
-          }
+          <section className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl">
+            <h2 className="text-xl font-black theme-text mb-6 flex items-center gap-2">
+              <Link2 size={20} className="text-chai-500"/>
+              3. Socials
+            </h2>
+            <SocialsStep data={data.socials} set={setSocial} />
+          </section>
+
+          <section className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl">
+            <h2 className="text-xl font-black theme-text mb-6 flex items-center gap-2">
+              <CreditCard size={20} className="text-chai-500"/>
+              4. Gateway
+            </h2>
+            <GatewayStep data={data} set={set} errors={errors} />
+          </section>
+
+          <section className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl">
+            <h2 className="text-xl font-black theme-text mb-6 flex items-center gap-2">
+              <Paintbrush size={20} className="text-chai-500"/>
+              5. Customize
+            </h2>
+            <CustomizeStep data={data} set={set} errors={errors} />
+          </section>
+
+          <section className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl bg-chai-50/30 dark:bg-chai-950/20">
+            <h2 className="text-xl font-black theme-text mb-6 flex items-center gap-2">
+              <Code2 size={20} className="text-chai-500"/>
+              6. Your Config
+            </h2>
+            <ConfigStep data={data} />
+            
+            <div className="mt-10 pt-8 border-t border-[var(--card-border)] flex flex-col items-center gap-4">
+              <button 
+                onClick={(e) => {
+                  if (!validate()) {
+                    e.preventDefault();
+                  } else {
+                    window.location.href = '/';
+                  }
+                }}
+                className="px-10 py-4 rounded-2xl bg-chai-500 text-white font-black shadow-xl shadow-chai-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              >
+                Done! View My Page
+              </button>
+              {Object.keys(errors).length > 0 && (
+                <p className="text-sm text-red-500 font-bold flex items-center gap-1">
+                  <AlertTriangle size={14}/> Please fix the errors above before continuing.
+                </p>
+              )}
+            </div>
+          </section>
         </div>
       </div>
     </div>
   );
 }
+

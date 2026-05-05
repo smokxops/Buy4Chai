@@ -1,24 +1,23 @@
-// chai.config.js — The single source of truth for your supporter page
-
+/**
+ * Buy4Chai Configuration — The single source of truth for your page.
+ * Edit this file and deploy to see changes.
+ */
 export default {
-  // 1. Identity
+  // --- Profile Identity ---
   name: "Arjun",
   avatar: "/avatar.png",
-
   bio: "I build open source and write about web dev. Every chai helps me keep going ☕",
   
-  // Narrative Story (New)
+  // Public narrative and mission statement
   story: "I'm a self-taught developer from India, building tools that help the local dev ecosystem thrive. Currently, I'm focusing on making financial tools more accessible to Indian creators who are often left behind by global platforms. Your support doesn't just buy me a chai—it buys me time to keep building and sharing everything I learn.",
 
-  // Gallery Images (New)
-  // Add URLs to your work, workspace, or anything you want to share.
-  // Leave empty [] if you don't want a gallery.
+  // Showcase gallery (empty [] to hide)
   images: [
     "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800",
     "https://images.unsplash.com/photo-1587620962725-abab7fe55159?auto=format&fit=crop&q=80&w=800"
   ],
 
-  // Pinned Projects (New)
+  // Featured projects list
   projects: [
     {
       name: "Buy Me a Chai",
@@ -34,7 +33,7 @@ export default {
     }
   ],
 
-  // 2. Social Links (Optional)
+  // Social handles (keys match Lucide icons)
   socials: {
     github: "yourusername",
     twitter: "yourhandle",
@@ -42,32 +41,46 @@ export default {
     website: "https://yoursite.com",
   },
 
-  // 3. Payment Gateway
-  // Supported: "razorpay", "dodo"
-  gateway: "razorpay",
+  // --- Payment Infrastructure ---
+  gateway: "razorpay", // Options: "razorpay", "dodo", "manual-links"
   
-  // Public Key only. Never put your secret key here.
+  /**
+   * IMPORTANT: Use PUBLIC Keys only.
+   * This file is visible to everyone once deployed.
+   */
   gatewayKey: "rzp_test_XXXXXXXXXXXX", 
-  
-  // 4. Currency & Pricing (Updated)
-  currency: "INR", // Primary currency for your gateway
-  displayCurrency: "USD", // Secondary currency for global supporters
-  exchangeRate: 83.5, // 1 USD = 83.5 INR
 
-  // Suggested amounts in USD (automatically converted to primary currency)
+  // Required ONLY if gateway is "manual-links"
+  // Map your native currency amounts (e.g., INR) to payment links from your dashboard
+  paymentLinks: {
+    // 167: "https://rzp.io/l/link-for-167-inr",
+    // 418: "https://rzp.io/l/link-for-418-inr",
+  },
+
+  // UPI Direct (System B)
+  upi: {
+    enabled: true,
+    id: "yourname@upi",
+    name: "Arjun",
+  }, 
+  
+  // Dual-Currency Logic
+  currency: "INR",          // Your gateway's native currency
+  displayCurrency: "USD",   // Global display currency for supporters
+  exchangeRate: 83.5,       // Conversion factor: 1 USD = X INR
+
+  // Suggested amounts in USD (automatically converted to native currency)
   suggestedAmounts: [2, 5, 10, 25],
-  defaultAmount: 5, // Default amount in USD
+  defaultAmount: 5, 
   
-  // 5. Theme Customization (Optional)
   accentColor: "#8B5E3C",
-
-  // Success Message
   thankYouMessage: "You made my day! Your support keeps me motivated to build and share more.",
 
-  // 6. Production & Security (Optional)
-  // Set showSetup to false to hide the /#setup route from the public.
-  showSetup: true,
-
-  // If setupKey is set, you must access via /#setup?key=yourkey
+  // --- Admin & Security ---
+  showSetup: true, // Hide the /#setup wizard after configuration
+  
+  /**
+   * If set, access wizard via: /#setup?key=YOUR_KEY
+   */
   setupKey: "chai123",
 }

@@ -10,7 +10,7 @@
   </p>
 
   <p>
-    <a href="https://your-deployment-url.vercel.app"><strong>View Demo</strong></a> •
+    <a href="https://buy4-chai.vercel.app/"><strong>View Demo</strong></a> •
     <a href="#-deployment-in-10-minutes"><strong>Deploy Yours</strong></a> •
     <a href="master.md"><strong>The Manifesto</strong></a>
   </p>
@@ -31,6 +31,16 @@ Sharing a UPI ID in a README feels "janky." Using PayPal involves massive fees. 
 - **💸 0% Platform Fees:** We aren't a middleman. Money moves directly from your supporters to your Razorpay or Dodo account. You keep every rupee.
 - **🛡️ Self-Hosted Sovereignty:** You own the deployment. No platform accounts, no vendor lock-in. Host it on your own domain using Vercel, GitHub Pages, or Netlify for free.
 - **🔐 Protected Onboarding:** A professional 6-step setup wizard (`/#setup`) that handles everything from identity to gateway keys, gated by a security key for production safety.
+
+---
+
+## 📸 Visuals
+
+### Dark Mode (Default)
+[![Dark Mode](screenshots/dark_mode.jpg)](https://buy4-chai.vercel.app/)
+
+### Light Mode
+[![Light Mode](screenshots/light_mode.jpg)](https://buy4-chai.vercel.app/)
 
 ---
 
@@ -69,13 +79,32 @@ Push your changes and connect your repo to **Vercel** or **Netlify**. It will au
 
 ## 🔌 Add to your README
 
-Start receiving support by adding this high-fidelity badge to your projects:
+Choose a badge style that fits your project's aesthetic:
 
-```markdown
-[![Support me on Buy Me a Chai](https://your-deployment-url.vercel.app/badge.svg)](https://your-deployment-url.vercel.app)
-```
+| Style | Preview | Markdown Snippet (Click to expand) |
+| :--- | :--- | :--- |
+| **Mono-Chai** | ![Mono-Chai](public/badges/standard.svg) | <details><summary>Get Code</summary><br><br>```markdown<br>[![Support](https://raw.githubusercontent.com/vassu-v/Buy4Chai/main/public/badges/standard.svg)](https://your-deployment-url.vercel.app)<br>```<br></details> |
+| **Bento-Box** | ![Bento-Box](public/badges/personal.svg) | <details><summary>Get Code</summary><br><br>```markdown<br>[![Support](https://raw.githubusercontent.com/vassu-v/Buy4Chai/main/public/badges/personal.svg)](https://your-deployment-url.vercel.app)<br>```<br></details> |
+| **Light Pill** | ![Light Pill](public/badges/buy4chai.svg) | <details><summary>Get Code</summary><br><br>```markdown<br>[![Support](https://raw.githubusercontent.com/vassu-v/Buy4Chai/main/public/badges/buy4chai.svg)](https://your-deployment-url.vercel.app)<br>```<br></details> |
+| **Classic** | ![Classic](public/badges/badge.svg) | <details><summary>Get Code</summary><br><br>```markdown<br>[![Support](https://raw.githubusercontent.com/vassu-v/Buy4Chai/main/public/badges/badge.svg)](https://your-deployment-url.vercel.app)<br>```<br></details> |
+| **Shields.io** | ![Shields](https://img.shields.io/badge/Support-Buy4Chai-8B5E3C?style=for-the-badge&logo=coffee&logoColor=white) | <details><summary>Get Code</summary><br><br>```markdown<br>[![Support](https://img.shields.io/badge/Support-Buy4Chai-8B5E3C?style=for-the-badge&logo=coffee&logoColor=white)](https://your-deployment-url.vercel.app)<br>```<br></details> |
 
 *(Replace `your-deployment-url.vercel.app` with your actual live URL).*
+
+> [!TIP]
+> For the **Bento-Box** style, you will have to change the badge name and host it on your own domain. Instead of using the Raw GitHub link, use your own deployment link (e.g., `https://your-name.vercel.app/badges/personal.svg`) for the image source to ensure full control over your branding.
+
+
+---
+
+## 🤖 AI-Powered Gateway Integration
+
+Want to add a gateway that isn't supported yet? You can use an AI agent (like Antigravity, Claude, or Cursor) to do it for you in seconds.
+
+**The Prompt for your AI Agent:**
+> "Read `gateway.md` and the attached documentation for [Gateway Name]. Follow the architectural best practices and the 'Gateway Contract' defined in `gateway.md`. Decide whether to follow the Tier 1 (Redirect) or Tier 2 (SDK) flow based on the provided docs. Implement `src/gateways/[name].js` ensuring 100% static compliance and zero-backend logic."
+
+**User Tip:** Just clone this repo, open your AI agent, attach your payment gateway's documentation, and let the agent run. Provide it with your Public Key ID when asked, and you're ready to host. Simple as that.
 
 ---
 

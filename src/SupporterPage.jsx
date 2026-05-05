@@ -4,13 +4,16 @@ import {
   Github, Twitter, Globe, Linkedin,
   ShieldCheck, Heart, Loader2, AlertCircle, Sun, Moon, Check,
   ExternalLink, ArrowRight, MessageSquare, Image as ImageIcon,
-  Coffee, X, Repeat
+  Coffee, X, Repeat, Zap
 } from 'lucide-react';
 import config from '../chai.config.js';
-import { initPayment as initRazorpay } from './gateways/razorpay.js';
-import { initPayment as initDodo, checkDodoReturn } from './gateways/dodo.js';
+import { initPayment as initRazorpay, gatewayCapabilities as razorpayCaps } from './gateways/razorpay.js';
+import { initPayment as initDodo, checkDodoReturn, gatewayCapabilities as dodoCaps } from './gateways/dodo.js';
+import { getUPIUrl, gatewayCapabilities as upiCaps } from './gateways/upi-direct.js';
+import { initPayment as initManual, gatewayCapabilities as manualCaps } from './gateways/manual-links.js';
 
-/* ─── helpers ─────────────────────────────────────────────────── */
+/* ─── Shared UI Logic ─────────────────────────────────────────── */
+
 const SOCIAL_URLS = {
   github:   (v) => `https://github.com/${v}`,
   twitter:  (v) => `https://twitter.com/${v}`,
@@ -20,25 +23,40 @@ const SOCIAL_URLS = {
 const SOCIAL_ICON  = { github: <Github size={16}/>, twitter: <Twitter size={16}/>, linkedin: <Linkedin size={16}/>, website: <Globe size={16}/> };
 const SOCIAL_LABEL = { github: 'GitHub', twitter: 'Twitter', linkedin: 'LinkedIn', website: 'Website' };
 
-/* ─── SupporterPage ───────────────────────────────────────────── */
+const GATEWAY_NAMES = {
+  'razorpay': 'Razorpay',
+  'dodo': 'Dodo Payments',
+  'manual-links': 'Payment Link'
+};
+
+/**
+ * Main Supporter-Facing Component
+ */
 export default function SupporterPage({ dark, toggleDark }) {
   const [showPayment, setShowPayment] = useState(false);
-  const [isUSD, setIsUSD] = useState(true);
+  const [isUSD, setIsUSD] = useState(true); // Toggle between Global (USD) and Local (e.g. INR) view
   const [selected, setSelected] = useState(config.defaultAmount || 5);
   const [custom, setCustom] = useState('');
   const [isCustomMode, setIsCustomMode] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showUPIQR, setShowUPIQR] = useState(false);
   const [error, setError] = useState('');
 
   const exchangeRate = config.exchangeRate || 80;
   const primaryCurrency = config.currency || 'INR';
   const secondaryCurrency = config.displayCurrency || 'USD';
-
   const suggestedAmounts = config.suggestedAmounts || [2, 5, 10, 25];
 
+  const currentGatewayCaps = config.gateway === 'razorpay' ? razorpayCaps : 
+                            (config.gateway === 'dodo' ? dodoCaps : 
+                            (config.gateway === 'manual-links' ? manualCaps : null));
+  const supportsCustom = currentGatewayCaps?.supportsCustomAmount ?? upiCaps.supportsCustomAmount;
+
+  // Derived amount based on preset selection or custom input (always in USD internally)
   const displayAmountUSD = parseFloat(isCustomMode ? custom : selected) || 0;
 
+  // Lifecycle: Detect return from external payment gateways (e.g. Dodo)
   useEffect(() => {
     if (config.gateway === 'dodo') {
       const status = checkDodoReturn();
@@ -47,27 +65,35 @@ export default function SupporterPage({ dark, toggleDark }) {
     }
   }, []);
 
-  const selectPreset = (amt) => { setSelected(amt); setCustom(''); setError(''); setIsCustomMode(false); };
-  const enableCustom = () => { setIsCustomMode(true); setSelected(null); setError(''); };
-  const onCustom     = (e)   => { setCustom(e.target.value); setError(''); };
+  const selectPreset = (amt) => { setSelected(amt); setCustom(''); setError(''); setIsCustomMode(false); setShowUPIQR(false); };
+  const enableCustom = () => { setIsCustomMode(true); setSelected(null); setError(''); setShowUPIQR(false); };
+  const onCustom     = (e)   => { setCustom(e.target.value); setError(''); setShowUPIQR(false); };
 
+  /**
+   * Orchestrates the payment flow
+   */
   const handlePay = async () => {
     if (!displayAmountUSD || displayAmountUSD < 0.5) {
       setError('Please enter a valid amount (min $0.50).');
       return;
     }
 
-    // Convert to primary currency (e.g. INR) for the gateway
+    // Convert internal USD amount to Gateway's primary currency (e.g. INR)
     const amtPrimary = Math.round(displayAmountUSD * exchangeRate);
 
     setIsProcessing(true); setError(''); setSuccess(false);
     try {
       if (config.gateway === 'razorpay') {
+        // Razorpay handles checkout in-app via modal
         await initRazorpay(amtPrimary * 100, config);
         setSuccess(true);
         setShowPayment(false);
       } else if (config.gateway === 'dodo') {
+        // Dodo handles checkout via external redirect
         await initDodo(amtPrimary, config);
+      } else if (config.gateway === 'manual-links') {
+        // Manual links handle checkout via external redirect
+        await initManual(amtPrimary, config);
       } else {
         throw new Error(`Unknown gateway: "${config.gateway}"`);
       }
@@ -79,6 +105,24 @@ export default function SupporterPage({ dark, toggleDark }) {
     }
   };
 
+  /**
+   * Orchestrates the UPI payment flow
+   */
+  const handleUPI = () => {
+    if (!displayAmountUSD || displayAmountUSD < 0.5) {
+      setError('Please enter a valid amount (min $0.50).');
+      return;
+    }
+
+    // Always convert to INR for UPI as per user request
+    setShowUPIQR(true);
+  };
+
+  const amtPrimary = Math.round(displayAmountUSD * exchangeRate);
+
+  /**
+   * Locale-aware currency formatting
+   */
   const formatCurrency = (amount, currency) => {
     const locale = currency === 'INR' ? 'en-IN' : 'en-US';
     return new Intl.NumberFormat(locale, {
@@ -91,7 +135,7 @@ export default function SupporterPage({ dark, toggleDark }) {
   return (
     <div className="min-h-screen theme-bg transition-colors duration-300 font-sans selection:bg-chai-200 dark:selection:bg-chai-900 selection:text-chai-900 dark:selection:text-chai-100">
       
-      {/* Navigation */}
+      {/* Top Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-[var(--bg)]/80 border-b border-[var(--card-border)]/50">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -108,10 +152,10 @@ export default function SupporterPage({ dark, toggleDark }) {
 
       <main className="max-w-6xl mx-auto px-6 pt-24 pb-24 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
         
-        {/* Left Column: Creator Narrative (Scrollable) */}
+        {/* Left Column: Creator Narrative & Portfolio */}
         <div className="lg:col-span-7 space-y-16">
 
-          {/* Hero Section */}
+          {/* Identity Section */}
           <section>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -150,7 +194,7 @@ export default function SupporterPage({ dark, toggleDark }) {
             </motion.div>
           </section>
 
-          {/* Story Section */}
+          {/* Deep-dive Narrative Section */}
           {config.story && (
             <section>
               <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2 uppercase tracking-widest text-xs opacity-50">
@@ -163,7 +207,7 @@ export default function SupporterPage({ dark, toggleDark }) {
             </section>
           )}
 
-          {/* Image Gallery */}
+          {/* Visual Showcase (Gallery) */}
           {config.images && config.images.length > 0 && (
             <section>
               <h2 className="text-xl font-bold text-[var(--text-primary)] mb-8 flex items-center gap-2 uppercase tracking-widest text-xs opacity-50">
@@ -180,7 +224,7 @@ export default function SupporterPage({ dark, toggleDark }) {
             </section>
           )}
 
-          {/* Pinned Projects */}
+          {/* Featured Projects Portfolio */}
           {config.projects && config.projects.length > 0 && (
             <section>
               <h2 className="text-xl font-bold text-[var(--text-primary)] mb-8 flex items-center gap-2 uppercase tracking-widest text-xs opacity-50">
@@ -212,13 +256,14 @@ export default function SupporterPage({ dark, toggleDark }) {
 
         </div>
 
-        {/* Right Column: Support Card (Sticky) */}
+        {/* Right Column: CTA / Sticky Support Card */}
         <div className="lg:col-span-5 lg:sticky lg:top-24">
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             className="theme-card border rounded-[2.5rem] p-8 lg:p-10 shadow-2xl shadow-black/5 relative overflow-hidden"
           >
+            {/* Background Gradient Glow */}
             <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-40 h-40 bg-chai-500 blur-[80px] opacity-10"></div>
 
             <div className="relative z-10 space-y-8">
@@ -234,7 +279,7 @@ export default function SupporterPage({ dark, toggleDark }) {
                   onClick={() => setShowPayment(true)}
                   className="w-full bg-[var(--text-primary)] text-[var(--bg)] py-5 rounded-2xl text-xl font-black hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-black/10 flex items-center justify-center gap-3"
                 >
-                  <Coffee size={24} />
+                  <img src="/logo.svg" alt="Chai" className="w-6 h-6" />
                   Buy me a chai
                 </button>
                 <div className="flex items-center justify-center gap-2 text-xs font-bold text-[var(--text-faint)] uppercase tracking-widest">
@@ -264,7 +309,7 @@ export default function SupporterPage({ dark, toggleDark }) {
 
       </main>
 
-      {/* Payment Overlay */}
+      {/* Checkout Modal Overlay */}
       <AnimatePresence>
         {showPayment && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -283,7 +328,7 @@ export default function SupporterPage({ dark, toggleDark }) {
               className="relative w-full max-w-md theme-card border rounded-[2.5rem] p-8 shadow-2xl overflow-hidden"
             >
               <button
-                onClick={() => setShowPayment(false)}
+                onClick={() => { setShowPayment(false); setShowUPIQR(false); }}
                 className="absolute top-6 right-6 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               >
                 <X size={24} />
@@ -294,22 +339,55 @@ export default function SupporterPage({ dark, toggleDark }) {
                 <p className="text-[var(--text-muted)] text-sm font-medium">Choose an amount to buy me a chai.</p>
               </div>
 
-              {/* Currency Toggle */}
+              {showUPIQR ? (
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center py-6">
+                  <div className="bg-white p-4 rounded-3xl shadow-lg border border-[var(--card-border)] mb-6">
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(getUPIUrl(amtPrimary, config))}`} 
+                      alt="UPI QR Code" 
+                      className="w-48 h-48 rounded-xl"
+                    />
+                  </div>
+                  <h3 className="text-xl font-black text-[var(--text-primary)] mb-2">Scan to Pay</h3>
+                  <p className="text-[var(--text-muted)] text-center text-sm font-medium mb-6">
+                    Open your UPI app (GPay, PhonePe, Paytm) and scan this QR code to pay <strong className="text-[var(--text-primary)]">{formatCurrency(amtPrimary, primaryCurrency)}</strong>.
+                  </p>
+                  
+                  <div className="flex gap-3 w-full">
+                    <button
+                      onClick={() => setShowUPIQR(false)}
+                      className="flex-1 bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--card-border)] py-4 rounded-2xl text-sm font-bold transition-all"
+                    >
+                      Go Back
+                    </button>
+                    {/* On Mobile, provide a direct link to open the app */}
+                    <a
+                      href={getUPIUrl(amtPrimary, config)}
+                      className="flex-1 bg-chai-500 text-white py-4 rounded-2xl text-sm font-black transition-all text-center flex items-center justify-center gap-2 hover:bg-chai-600 shadow-lg shadow-chai-500/20"
+                    >
+                      <Zap size={16} className="fill-white" />
+                      Open UPI App
+                    </a>
+                  </div>
+                </motion.div>
+              ) : (
+                <>
+                  {/* View Currency Toggle (Local vs Global display) */}
               <div className="flex items-center justify-between mb-6 p-3 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)]">
                 <div className="flex flex-col ml-1">
                   <span className="text-xs font-bold text-[var(--text-muted)] leading-tight">Showing {isUSD ? secondaryCurrency : primaryCurrency}</span>
-                  <span className="text-[9px] text-[var(--text-faint)] font-bold uppercase tracking-tighter">1 {secondaryCurrency} = {exchangeRate} {primaryCurrency}</span>
+                  <span className="text-[9px] text-[var(--text-faint)] font-bold uppercase tracking-tighter">1 {secondaryCurrency} ≈ {exchangeRate} {primaryCurrency}</span>
                 </div>
                 <button
                   onClick={() => setIsUSD(!isUSD)}
                   className="flex items-center gap-1.5 bg-[var(--text-primary)] text-[var(--bg)] px-3 py-1.5 rounded-lg text-[10px] font-black hover:opacity-90 transition-opacity"
                 >
                   <Repeat size={12} />
-                  {isUSD ? primaryCurrency : secondaryCurrency}
+                  Switch to {isUSD ? primaryCurrency : secondaryCurrency}
                 </button>
               </div>
 
-              {/* Amount Selection */}
+              {/* Suggested Presets Grid */}
               <div className="grid grid-cols-2 gap-3 mb-6">
                 {suggestedAmounts.map(amt => {
                   const isSelected = !isCustomMode && selected === amt;
@@ -336,41 +414,43 @@ export default function SupporterPage({ dark, toggleDark }) {
                 })}
               </div>
 
-              {/* Custom Amount */}
-              <div className="mb-8">
-                <button
-                  onClick={enableCustom}
-                  className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${isCustomMode ? 'border-[var(--text-primary)] bg-[var(--bg)] ring-2 ring-[var(--text-primary)]/10' : 'border-[var(--card-border)] bg-[var(--input-bg)] hover:bg-[var(--bg-subtle)]'}`}
-                >
-                  <span className={`font-bold text-sm ${isCustomMode ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>Custom Amount (USD)</span>
-                  {isCustomMode && <Check size={18} className="text-[var(--text-primary)]" />}
-                </button>
-                <AnimatePresence>
-                  {isCustomMode && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                      <div className="pt-4 relative">
-                        <span className="absolute left-5 top-[62%] -translate-y-1/2 text-[var(--text-muted)] font-black text-xl select-none">$</span>
-                        <input
-                          type="number"
-                          min="0.5"
-                          step="0.01"
-                          inputMode="decimal"
-                          autoFocus
-                          placeholder="0.00"
-                          value={custom}
-                          onChange={onCustom}
-                          className="w-full bg-[var(--input-bg)] text-[var(--text-primary)] text-2xl font-black pl-10 pr-6 py-4 rounded-2xl border border-[var(--card-border)] focus:outline-none focus:border-[var(--text-primary)] transition-all placeholder:text-[var(--text-faint)]"
-                        />
-                        <div className="mt-2 text-right text-xs font-bold text-[var(--text-muted)]">
-                          ≈ {formatCurrency(Math.round((parseFloat(custom) || 0) * exchangeRate), primaryCurrency)}
+              {/* Custom Input Trigger */}
+              {supportsCustom && (
+                <div className="mb-8">
+                  <button
+                    onClick={enableCustom}
+                    className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${isCustomMode ? 'border-[var(--text-primary)] bg-[var(--bg)] ring-2 ring-[var(--text-primary)]/10' : 'border-[var(--card-border)] bg-[var(--input-bg)] hover:bg-[var(--bg-subtle)]'}`}
+                  >
+                    <span className={`font-bold text-sm ${isCustomMode ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>Custom Amount (USD)</span>
+                    {isCustomMode && <Check size={18} className="text-[var(--text-primary)]" />}
+                  </button>
+                  <AnimatePresence>
+                    {isCustomMode && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="pt-4 relative">
+                          <span className="absolute left-5 top-[62%] -translate-y-1/2 text-[var(--text-muted)] font-black text-xl select-none">$</span>
+                          <input
+                            type="number"
+                            min="0.5"
+                            step="0.01"
+                            inputMode="decimal"
+                            autoFocus
+                            placeholder="0.00"
+                            value={custom}
+                            onChange={onCustom}
+                            className="w-full bg-[var(--input-bg)] text-[var(--text-primary)] text-2xl font-black pl-10 pr-6 py-4 rounded-2xl border border-[var(--card-border)] focus:outline-none focus:border-[var(--text-primary)] transition-all placeholder:text-[var(--text-faint)]"
+                          />
+                          <div className="mt-2 text-right text-xs font-bold text-[var(--text-muted)]">
+                            ≈ {formatCurrency(Math.round((parseFloat(custom) || 0) * exchangeRate), primaryCurrency)}
+                          </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
 
-              {/* Error Message */}
+              {/* Live Error Feedback */}
               <AnimatePresence>
                 {error && (
                   <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
@@ -381,7 +461,7 @@ export default function SupporterPage({ dark, toggleDark }) {
                 )}
               </AnimatePresence>
 
-              {/* Pay Button */}
+              {/* Dynamic Primary CTA */}
               <button
                 onClick={handlePay}
                 disabled={isProcessing}
@@ -394,7 +474,7 @@ export default function SupporterPage({ dark, toggleDark }) {
                   <div className="flex items-center gap-3"><Loader2 size={20} className="animate-spin"/>Processing Securely...</div>
                 ) : (
                   <>
-                    <span className="text-lg">Support with {config.gateway === 'razorpay' ? 'Razorpay' : 'Dodo'}</span>
+                    <span className="text-lg">Support with {GATEWAY_NAMES[config.gateway] || 'Gateway'}</span>
                     <span className="text-xs opacity-70 mt-1 uppercase tracking-tighter">
                       Total: {isUSD
                         ? `${formatCurrency(displayAmountUSD, secondaryCurrency)} (${formatCurrency(Math.round(displayAmountUSD * exchangeRate), primaryCurrency)})`
@@ -405,15 +485,36 @@ export default function SupporterPage({ dark, toggleDark }) {
                 )}
               </button>
 
+              {/* UPI Option - System B */}
+              {config.upi?.enabled && (
+                <div className="mt-4 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-[1px] flex-1 bg-[var(--card-border)]/50"></div>
+                    <span className="text-[10px] font-black theme-muted uppercase tracking-widest">Or pay via UPI</span>
+                    <div className="h-[1px] flex-1 bg-[var(--card-border)]/50"></div>
+                  </div>
+
+                  <button
+                    onClick={handleUPI}
+                    className="w-full bg-[var(--input-bg)] text-[var(--text-primary)] border border-[var(--card-border)] py-4 rounded-2xl text-base font-black hover:bg-[var(--bg-subtle)] transition-all flex items-center justify-center gap-2 group"
+                  >
+                    <Zap size={18} className="text-amber-500 fill-amber-500 group-hover:scale-110 transition-transform" />
+                    Pay with UPI (INR)
+                  </button>
+                </div>
+              )}
+
               <p className="mt-4 text-[10px] text-center text-[var(--text-faint)] font-medium italic">
                 * Exchange rate set by creator. Final amount may vary slightly based on your bank's rate.
               </p>
+                </>
+              )}
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* Success Message */}
+      {/* Success State Overlay */}
       <AnimatePresence>
         {success && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -440,7 +541,6 @@ export default function SupporterPage({ dark, toggleDark }) {
         )}
       </AnimatePresence>
 
-      {/* Footer */}
       <footer className="border-t border-[var(--card-border)]/50 bg-[var(--bg-subtle)]/50">
         <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           <div className="space-y-2">
@@ -463,3 +563,4 @@ export default function SupporterPage({ dark, toggleDark }) {
     </div>
   );
 }
+

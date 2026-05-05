@@ -1,47 +1,58 @@
 // src/gateways/dodo.js
 
+export const gatewayCapabilities = {
+  supportsCustomAmount: false,
+  requiresPresetLinks: false,
+  verificationType: "redirect",
+  tier: 1,
+};
+
+/**
+ * Initiates Dodo Payments via external redirect
+ */
 export async function initPayment(amount, config) {
 
-  // Build the Dodo Static Payment Link.
-  // product ID comes from config.gatewayKey.
-  // redirect_url is where Dodo sends the supporter after payment.
+  // Construct the Static Payment Link with return URL
+  // Uses gatewayKey as Product ID
   // We strip any existing query params from the current URL to keep it clean.
   const params = new URLSearchParams({
-    redirect_url: window.location.href.split("?")[0],
+    redirect_url: window.location.href.split("?")[0], // Strip existing query params
     quantity: "1",
   });
 
   const checkoutUrl =
     `https://checkout.dodopayments.com/buy/${config.gatewayKey}?${params.toString()}`;
 
-  // Redirect to Dodo. Page navigation happens here.
+  // External Navigation: The page reloads when the user returns.
   // Code after this line does not run.
   window.location.href = checkoutUrl;
 
-  // Return a Promise that never resolves.
+  // Never resolves as the page will redirect.
   // The page reloads when Dodo redirects back, so this is fine.
   return new Promise(() => {});
 }
 
 
-// Call this when your page loads.
-// Detects if the supporter just returned from Dodo after paying.
-//
-// Returns:
-//   "success" — payment succeeded, show thank you
-//   "failed"  — payment failed, show error
-//   null      — normal page load, not a Dodo return, do nothing
-
+/**
+ * Hook to be called on page load to detect successful redirect back from Dodo.
+ * Detects if the supporter just returned from Dodo after paying.
+ * 
+ * Returns:
+ *   "success" — payment succeeded, show thank you
+ *   "failed"  — payment failed, show error
+ *   null      — normal page load, not a Dodo return, do nothing
+ */
 export function checkDodoReturn() {
   const params = new URLSearchParams(window.location.search);
   const status = params.get("status");
   const paymentId = params.get("payment_id");
 
   if (!status && !paymentId) {
-    return null; // Normal page load
+    return null; // Regular visit
   }
 
-  // Clean the URL — removes ?payment_id=...&status=... so it looks normal
+  // URL Hygiene: Strip payment metadata from the address bar
+  // Removes ?payment_id=...&status=... so it looks normal
   window.history.replaceState({}, "", window.location.pathname);
 
   if (status === "succeeded") {
@@ -50,3 +61,5 @@ export function checkDodoReturn() {
 
   return "failed";
 }
+
+
