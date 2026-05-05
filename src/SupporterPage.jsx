@@ -9,7 +9,7 @@ import {
 import config from '../chai.config.js';
 import { initPayment as initRazorpay } from './gateways/razorpay.js';
 import { initPayment as initDodo, checkDodoReturn } from './gateways/dodo.js';
-import { initPayment as initUPI } from './gateways/upi-direct.js';
+import { getUPIUrl } from './gateways/upi-direct.js';
 
 /* ─── Shared UI Logic ─────────────────────────────────────────── */
 
@@ -33,6 +33,7 @@ export default function SupporterPage({ dark, toggleDark }) {
   const [isCustomMode, setIsCustomMode] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showUPIQR, setShowUPIQR] = useState(false);
   const [error, setError] = useState('');
 
   const exchangeRate = config.exchangeRate || 80;
@@ -53,9 +54,9 @@ export default function SupporterPage({ dark, toggleDark }) {
     }
   }, []);
 
-  const selectPreset = (amt) => { setSelected(amt); setCustom(''); setError(''); setIsCustomMode(false); };
-  const enableCustom = () => { setIsCustomMode(true); setSelected(null); setError(''); };
-  const onCustom     = (e)   => { setCustom(e.target.value); setError(''); };
+  const selectPreset = (amt) => { setSelected(amt); setCustom(''); setError(''); setIsCustomMode(false); setShowUPIQR(false); };
+  const enableCustom = () => { setIsCustomMode(true); setSelected(null); setError(''); setShowUPIQR(false); };
+  const onCustom     = (e)   => { setCustom(e.target.value); setError(''); setShowUPIQR(false); };
 
   /**
    * Orchestrates the payment flow
@@ -100,10 +101,10 @@ export default function SupporterPage({ dark, toggleDark }) {
     }
 
     // Always convert to INR for UPI as per user request
-    const amtINR = Math.round(displayAmountUSD * exchangeRate);
-    
-    initUPI(amtINR, config);
+    setShowUPIQR(true);
   };
+
+  const amtPrimary = Math.round(displayAmountUSD * exchangeRate);
 
   /**
    * Locale-aware currency formatting
@@ -313,7 +314,7 @@ export default function SupporterPage({ dark, toggleDark }) {
               className="relative w-full max-w-md theme-card border rounded-[2.5rem] p-8 shadow-2xl overflow-hidden"
             >
               <button
-                onClick={() => setShowPayment(false)}
+                onClick={() => { setShowPayment(false); setShowUPIQR(false); }}
                 className="absolute top-6 right-6 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               >
                 <X size={24} />
@@ -324,7 +325,40 @@ export default function SupporterPage({ dark, toggleDark }) {
                 <p className="text-[var(--text-muted)] text-sm font-medium">Choose an amount to buy me a chai.</p>
               </div>
 
-              {/* View Currency Toggle (Local vs Global display) */}
+              {showUPIQR ? (
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center py-6">
+                  <div className="bg-white p-4 rounded-3xl shadow-lg border border-[var(--card-border)] mb-6">
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(getUPIUrl(amtPrimary, config))}`} 
+                      alt="UPI QR Code" 
+                      className="w-48 h-48 rounded-xl"
+                    />
+                  </div>
+                  <h3 className="text-xl font-black text-[var(--text-primary)] mb-2">Scan to Pay</h3>
+                  <p className="text-[var(--text-muted)] text-center text-sm font-medium mb-6">
+                    Open your UPI app (GPay, PhonePe, Paytm) and scan this QR code to pay <strong className="text-[var(--text-primary)]">{formatCurrency(amtPrimary, primaryCurrency)}</strong>.
+                  </p>
+                  
+                  <div className="flex gap-3 w-full">
+                    <button
+                      onClick={() => setShowUPIQR(false)}
+                      className="flex-1 bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--card-border)] py-4 rounded-2xl text-sm font-bold transition-all"
+                    >
+                      Go Back
+                    </button>
+                    {/* On Mobile, provide a direct link to open the app */}
+                    <a
+                      href={getUPIUrl(amtPrimary, config)}
+                      className="flex-1 bg-chai-500 text-white py-4 rounded-2xl text-sm font-black transition-all text-center flex items-center justify-center gap-2 hover:bg-chai-600 shadow-lg shadow-chai-500/20"
+                    >
+                      <Zap size={16} className="fill-white" />
+                      Open UPI App
+                    </a>
+                  </div>
+                </motion.div>
+              ) : (
+                <>
+                  {/* View Currency Toggle (Local vs Global display) */}
               <div className="flex items-center justify-between mb-6 p-3 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)]">
                 <div className="flex flex-col ml-1">
                   <span className="text-xs font-bold text-[var(--text-muted)] leading-tight">Showing {isUSD ? secondaryCurrency : primaryCurrency}</span>
@@ -457,6 +491,8 @@ export default function SupporterPage({ dark, toggleDark }) {
               <p className="mt-4 text-[10px] text-center text-[var(--text-faint)] font-medium italic">
                 * Exchange rate set by creator. Final amount may vary slightly based on your bank's rate.
               </p>
+                </>
+              )}
             </motion.div>
           </div>
         )}
