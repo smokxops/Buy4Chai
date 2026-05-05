@@ -489,7 +489,6 @@ function ConfigStep({ data }) {
 const STEP_COMPONENTS = [IdentityStep, NarrativeStep, SocialsStep, GatewayStep, CustomizeStep, ConfigStep];
 
 export default function SetupPage({ dark, toggleDark }) {
-  const [step, setStep] = useState(0);
   const [data, setData] = useState({
     name: '', bio: '', avatar: '',
     story: '', images: [], projects: [],
@@ -511,45 +510,9 @@ export default function SetupPage({ dark, toggleDark }) {
   };
   const setSocial = (k, v) => setData(d => ({ ...d, socials: { ...d.socials, [k]: v } }));
 
-  /**
-   * Field Validation before proceeding to next step
-   */
-  const validate = () => {
-    const newErrors = {};
-    if (step === 0) {
-      if (!data.name) newErrors.name = "Name is required";
-      if (!data.bio) newErrors.bio = "Bio is required";
-      if (data.avatar && !data.avatar.startsWith('http') && !data.avatar.startsWith('/')) {
-        newErrors.avatar = "Avatar must be a valid URL or local path (starting with /)";
-      }
-    }
-    if (step === 3) {
-      if (data.gateway !== 'manual-links' && !data.gatewayKey) {
-        newErrors.gatewayKey = "Gateway key is required";
-      }
-      if (data.gateway === 'manual-links') {
-        const hasLinks = Object.values(data.paymentLinks).some(l => l && l.startsWith('http'));
-        if (!hasLinks) {
-          newErrors.gatewayKey = "At least one valid payment link is required";
-        }
-      }
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const nextStep = () => {
-    if (validate()) setStep(s => s + 1);
-  };
-
-  const CurrentStep = (props) => {
-    const Comp = STEP_COMPONENTS[step];
-    return <Comp {...props} errors={errors} />;
-  };
-
   return (
     <div className="min-h-screen theme-bg transition-colors duration-300">
-      <div className="max-w-2xl mx-auto px-5 py-10">
+      <div className="max-w-3xl mx-auto px-5 py-10">
         <header className="flex justify-between items-center mb-10">
           <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img src="/logo.svg" alt="Buy4Chai" className="w-9 h-9"/>
@@ -564,40 +527,60 @@ export default function SetupPage({ dark, toggleDark }) {
           </button>
         </header>
 
-        {/* Horizontal Step Indicator */}
-        <div className="flex items-center gap-2 mb-10 overflow-x-auto pb-1 no-scrollbar">
-          {STEPS.map((s, i) => {
-            const isClickable = i <= step;
-            return (
-              <button 
-                key={s.id} 
-                onClick={() => isClickable && setStep(i)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all
-                  ${i === step ? 'bg-chai-500 text-white shadow-md' : isClickable ? 'bg-chai-100 dark:bg-chai-900/50 text-chai-600 hover:bg-chai-200 dark:hover:bg-chai-900' : 'bg-[var(--bg-subtle)] theme-muted opacity-50 cursor-not-allowed'}
-                `}
-              >
-                <s.icon size={13}/> <span className="hidden sm:inline">{s.label}</span>
-              </button>
-            );
-          })}
-        </div>
+        <div className="space-y-12 pb-20">
+          <section className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl">
+            <h2 className="text-xl font-black theme-text mb-6 flex items-center gap-2">
+              <User size={20} className="text-chai-500"/>
+              1. Identity
+            </h2>
+            <IdentityStep data={data} set={set} errors={errors} />
+          </section>
 
-        {/* Step Transition Animation */}
-        <motion.div key={step} initial={{opacity:0, x:20}} animate={{opacity:1, x:0}}
-          className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl mb-6">
-          <CurrentStep
-            data={step === 2 ? data.socials : data}
-            set={step === 2 ? setSocial : set}
-          />
-        </motion.div>
+          <section className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl">
+            <h2 className="text-xl font-black theme-text mb-6 flex items-center gap-2">
+              <MessageSquare size={20} className="text-chai-500"/>
+              2. Narrative
+            </h2>
+            <NarrativeStep data={data} set={set} />
+          </section>
 
-        {/* Navigation Controls */}
-        <div className="flex justify-between">
-          <button onClick={() => setStep(s => s - 1)} disabled={step === 0} className="px-5 py-3 rounded-2xl border theme-text disabled:opacity-0">Back</button>
-          {step < STEPS.length - 1
-            ? <button onClick={nextStep} className="px-6 py-3 rounded-2xl bg-chai-500 text-white font-bold">Continue</button>
-            : <a href="/" className="px-6 py-3 rounded-2xl bg-chai-500 text-white font-bold">View Page</a>
-          }
+          <section className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl">
+            <h2 className="text-xl font-black theme-text mb-6 flex items-center gap-2">
+              <Link2 size={20} className="text-chai-500"/>
+              3. Socials
+            </h2>
+            <SocialsStep data={data.socials} set={setSocial} />
+          </section>
+
+          <section className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl">
+            <h2 className="text-xl font-black theme-text mb-6 flex items-center gap-2">
+              <CreditCard size={20} className="text-chai-500"/>
+              4. Gateway
+            </h2>
+            <GatewayStep data={data} set={set} errors={errors} />
+          </section>
+
+          <section className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl">
+            <h2 className="text-xl font-black theme-text mb-6 flex items-center gap-2">
+              <Paintbrush size={20} className="text-chai-500"/>
+              5. Customize
+            </h2>
+            <CustomizeStep data={data} set={set} />
+          </section>
+
+          <section className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl bg-chai-50/30 dark:bg-chai-950/20">
+            <h2 className="text-xl font-black theme-text mb-6 flex items-center gap-2">
+              <Code2 size={20} className="text-chai-500"/>
+              6. Your Config
+            </h2>
+            <ConfigStep data={data} />
+            
+            <div className="mt-10 pt-8 border-t border-[var(--card-border)] flex justify-center">
+              <a href="/" className="px-10 py-4 rounded-2xl bg-chai-500 text-white font-black shadow-xl shadow-chai-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                Done! View My Page
+              </a>
+            </div>
+          </section>
         </div>
       </div>
     </div>
