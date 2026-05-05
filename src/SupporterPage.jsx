@@ -23,6 +23,12 @@ const SOCIAL_URLS = {
 const SOCIAL_ICON  = { github: <Github size={16}/>, twitter: <Twitter size={16}/>, linkedin: <Linkedin size={16}/>, website: <Globe size={16}/> };
 const SOCIAL_LABEL = { github: 'GitHub', twitter: 'Twitter', linkedin: 'LinkedIn', website: 'Website' };
 
+const GATEWAY_NAMES = {
+  'razorpay': 'Razorpay',
+  'dodo': 'Dodo Payments',
+  'manual-links': 'Payment Link'
+};
+
 /**
  * Main Supporter-Facing Component
  */
@@ -468,7 +474,7 @@ export default function SupporterPage({ dark, toggleDark }) {
                   <div className="flex items-center gap-3"><Loader2 size={20} className="animate-spin"/>Processing Securely...</div>
                 ) : (
                   <>
-                    <span className="text-lg">Support with {config.gateway === 'razorpay' ? 'Razorpay' : 'Dodo'}</span>
+                    <span className="text-lg">Support with {GATEWAY_NAMES[config.gateway] || 'Gateway'}</span>
                     <span className="text-xs opacity-70 mt-1 uppercase tracking-tighter">
                       Total: {isUSD
                         ? `${formatCurrency(displayAmountUSD, secondaryCurrency)} (${formatCurrency(Math.round(displayAmountUSD * exchangeRate), primaryCurrency)})`

@@ -136,7 +136,7 @@ function IdentityStep({ data, set, errors }) {
 
 /* ---- Step 2: Narrative (Story & Projects) ---- */
 
-function NarrativeStep({ data, set }) {
+function NarrativeStep({ data, set, errors }) {
   const addImage = () => set('images', [...data.images, '']);
   const updateImage = (i, v) => {
     const next = [...data.images];
@@ -210,9 +210,13 @@ function NarrativeStep({ data, set }) {
                   </button>
                 </div>
               </div>
-              <Input value={p.name} onChange={v => updateProject(i, 'name', v)} placeholder="Project Name"/>
+              <Field label="Project Name" required error={errors[`project_${i}_name`]}>
+                <Input value={p.name} onChange={v => updateProject(i, 'name', v)} placeholder="Project Name"/>
+              </Field>
               <Input value={p.description} onChange={v => updateProject(i, 'description', v)} placeholder="Short description"/>
-              <Input value={p.link} onChange={v => updateProject(i, 'link', v)} placeholder="https://github.com/..."/>
+              <Field label="Project Link" error={errors[`project_${i}_link`]}>
+                <Input value={p.link} onChange={v => updateProject(i, 'link', v)} placeholder="https://github.com/..."/>
+              </Field>
               <Input value={p.image} onChange={v => updateProject(i, 'image', v)} placeholder="Preview Image URL"/>
             </div>
           ))}
@@ -371,7 +375,7 @@ function GatewayStep({ data, set, errors }) {
 
 /* ---- Step 5: Customize ---- */
 
-function CustomizeStep({ data, set }) {
+function CustomizeStep({ data, set, errors }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
@@ -383,13 +387,13 @@ function CustomizeStep({ data, set }) {
         </Field>
       </div>
 
-      <Field label="Exchange Rate" hint={`1 ${data.displayCurrency} = X ${data.currency}`}>
+      <Field label="Exchange Rate" required error={errors.exchangeRate} hint={`1 ${data.displayCurrency} = X ${data.currency}`}>
         <Input
           type="number"
           value={data.exchangeRate}
           onChange={v => {
             const parsed = parseFloat(v);
-            if (Number.isFinite(parsed) && parsed > 0) {
+            if (Number.isFinite(parsed)) {
               set('exchangeRate', parsed);
             } else if (v === '') {
               set('exchangeRate', '');
@@ -399,7 +403,7 @@ function CustomizeStep({ data, set }) {
         />
       </Field>
 
-      <Field label="Suggested Amounts (USD)" hint="Comma-separated values in USD.">
+      <Field label="Suggested Amounts (USD)" required error={errors.suggestedAmounts} hint="Comma-separated values in USD.">
         <Input value={data.suggestedAmounts.join(', ')}
           onChange={v => set('suggestedAmounts', v.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n)))}
           placeholder="2, 5, 10, 25"/>
@@ -510,6 +514,57 @@ export default function SetupPage({ dark, toggleDark }) {
   };
   const setSocial = (k, v) => setData(d => ({ ...d, socials: { ...d.socials, [k]: v } }));
 
+  /**
+   * Final Validation before "Done"
+   */
+  const validate = () => {
+    const newErrors = {};
+    
+    // Identity
+    if (!data.name) newErrors.name = "Name is required";
+    if (!data.bio) newErrors.bio = "Bio is required";
+    if (data.avatar && !data.avatar.startsWith('http') && !data.avatar.startsWith('/')) {
+      newErrors.avatar = "Avatar must be a valid URL or local path";
+    }
+
+    // Projects
+    data.projects.forEach((p, i) => {
+      if (!p.name) newErrors[`project_${i}_name`] = "Project name is required";
+      if (p.link && !p.link.startsWith('http') && p.link !== '#') {
+        newErrors[`project_${i}_link`] = "Link must be a valid URL or #";
+      }
+    });
+
+    // Gateway
+    if (data.gateway !== 'manual-links' && !data.gatewayKey) {
+      newErrors.gatewayKey = "Gateway key is required";
+    }
+    if (data.gateway === 'razorpay' && data.gatewayKey && String(data.gatewayKey).includes('secret')) {
+      newErrors.gatewayKey = "Wait! This looks like a Secret Key. Only use the Key ID (starts with rzp_).";
+    }
+    if (data.gateway === 'manual-links') {
+      const hasLinks = Object.values(data.paymentLinks).some(l => l && l.startsWith('http'));
+      if (!hasLinks) {
+        newErrors.gatewayKey = "At least one valid payment link is required";
+      }
+    }
+
+    // Customization
+    if (!data.exchangeRate || data.exchangeRate <= 0) {
+      newErrors.exchangeRate = "Exchange rate must be a positive number";
+    }
+    if (data.suggestedAmounts.length === 0) {
+      newErrors.suggestedAmounts = "At least one suggested amount is required";
+    }
+
+    setErrors(newErrors);
+    const isValid = Object.keys(newErrors).length === 0;
+    if (!isValid) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    return isValid;
+  };
+
   return (
     <div className="min-h-screen theme-bg transition-colors duration-300">
       <div className="max-w-3xl mx-auto px-5 py-10">
@@ -541,7 +596,7 @@ export default function SetupPage({ dark, toggleDark }) {
               <MessageSquare size={20} className="text-chai-500"/>
               2. Narrative
             </h2>
-            <NarrativeStep data={data} set={set} />
+            <NarrativeStep data={data} set={set} errors={errors} />
           </section>
 
           <section className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl">
@@ -565,7 +620,7 @@ export default function SetupPage({ dark, toggleDark }) {
               <Paintbrush size={20} className="text-chai-500"/>
               5. Customize
             </h2>
-            <CustomizeStep data={data} set={set} />
+            <CustomizeStep data={data} set={set} errors={errors} />
           </section>
 
           <section className="theme-card border rounded-3xl p-6 sm:p-8 shadow-xl bg-chai-50/30 dark:bg-chai-950/20">
@@ -575,10 +630,24 @@ export default function SetupPage({ dark, toggleDark }) {
             </h2>
             <ConfigStep data={data} />
             
-            <div className="mt-10 pt-8 border-t border-[var(--card-border)] flex justify-center">
-              <a href="/" className="px-10 py-4 rounded-2xl bg-chai-500 text-white font-black shadow-xl shadow-chai-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+            <div className="mt-10 pt-8 border-t border-[var(--card-border)] flex flex-col items-center gap-4">
+              <button 
+                onClick={(e) => {
+                  if (!validate()) {
+                    e.preventDefault();
+                  } else {
+                    window.location.href = '/';
+                  }
+                }}
+                className="px-10 py-4 rounded-2xl bg-chai-500 text-white font-black shadow-xl shadow-chai-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              >
                 Done! View My Page
-              </a>
+              </button>
+              {Object.keys(errors).length > 0 && (
+                <p className="text-sm text-red-500 font-bold flex items-center gap-1">
+                  <AlertTriangle size={14}/> Please fix the errors above before continuing.
+                </p>
+              )}
             </div>
           </section>
         </div>
