@@ -10,7 +10,7 @@
   </p>
 
   <p>
-    <a href="https://your-deployment-url.vercel.app"><strong>View Demo</strong></a> •
+    <a href="https://buy4-chai.vercel.app/"><strong>View Demo</strong></a> •
     <a href="#-deployment-in-10-minutes"><strong>Deploy Yours</strong></a> •
     <a href="master.md"><strong>The Manifesto</strong></a>
   </p>
@@ -31,6 +31,16 @@ Sharing a UPI ID in a README feels "janky." Using PayPal involves massive fees. 
 - **💸 0% Platform Fees:** We aren't a middleman. Money moves directly from your supporters to your Razorpay or Dodo account. You keep every rupee.
 - **🛡️ Self-Hosted Sovereignty:** You own the deployment. No platform accounts, no vendor lock-in. Host it on your own domain using Vercel, GitHub Pages, or Netlify for free.
 - **🔐 Protected Onboarding:** A professional 6-step setup wizard (`/#setup`) that handles everything from identity to gateway keys, gated by a security key for production safety.
+
+---
+
+## 📸 Visuals
+
+### Dark Mode (Default)
+[![Dark Mode](screenshots/dark_mode.jpg)](https://buy4-chai.vercel.app/)
+
+### Light Mode
+[![Light Mode](screenshots/light_mode.jpg)](https://buy4-chai.vercel.app/)
 
 ---
 
