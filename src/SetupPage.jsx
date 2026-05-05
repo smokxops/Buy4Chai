@@ -5,7 +5,7 @@ import {
   Check, ChevronRight, ChevronLeft, Copy, ExternalLink,
   Github, Twitter, Globe, Linkedin,
   AlertTriangle, Info, CheckCircle2, Zap, Shield, Image as ImageIcon,
-  MessageSquare, Coffee, Plus, Trash2, DollarSign
+  MessageSquare, Coffee, Plus, Trash2, DollarSign, Sun, Moon
 } from 'lucide-react';
 
 /**
@@ -551,25 +551,35 @@ export default function SetupPage({ dark, toggleDark }) {
     <div className="min-h-screen theme-bg transition-colors duration-300">
       <div className="max-w-2xl mx-auto px-5 py-10">
         <header className="flex justify-between items-center mb-10">
-          <div className="flex items-center gap-3">
+          <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img src="/logo.svg" alt="Buy4Chai" className="w-9 h-9"/>
             <p className="font-bold theme-text text-lg">Setup Wizard</p>
-          </div>
-          <button onClick={toggleDark} className="w-10 h-10 flex items-center justify-center rounded-full theme-card border shadow-sm">
-            {dark ? '☀️' : '🌙'}
+          </a>
+          <button 
+            onClick={toggleDark} 
+            className="w-10 h-10 flex items-center justify-center rounded-full theme-card border shadow-sm hover:border-chai-500 transition-all"
+            title="Toggle Dark Mode"
+          >
+            {dark ? <Sun size={18} className="text-amber-500"/> : <Moon size={18}/>}
           </button>
         </header>
 
         {/* Horizontal Step Indicator */}
-        <div className="flex items-center gap-2 mb-10 overflow-x-auto pb-1">
-          {STEPS.map((s, i) => (
-            <button key={s.id} onClick={() => i <= step && setStep(i)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
-                i === step ? 'bg-chai-500 text-white' : i < step ? 'bg-chai-100 dark:bg-chai-900/50 text-chai-600' : 'bg-[var(--bg-subtle)] theme-muted'
-              }`}>
-              <s.icon size={13}/> <span className="hidden sm:inline">{s.label}</span>
-            </button>
-          ))}
+        <div className="flex items-center gap-2 mb-10 overflow-x-auto pb-1 no-scrollbar">
+          {STEPS.map((s, i) => {
+            const isClickable = i <= step;
+            return (
+              <button 
+                key={s.id} 
+                onClick={() => isClickable && setStep(i)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all
+                  ${i === step ? 'bg-chai-500 text-white shadow-md' : isClickable ? 'bg-chai-100 dark:bg-chai-900/50 text-chai-600 hover:bg-chai-200 dark:hover:bg-chai-900' : 'bg-[var(--bg-subtle)] theme-muted opacity-50 cursor-not-allowed'}
+                `}
+              >
+                <s.icon size={13}/> <span className="hidden sm:inline">{s.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Step Transition Animation */}
