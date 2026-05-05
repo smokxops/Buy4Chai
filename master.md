@@ -91,7 +91,7 @@ Money goes directly to developer's gateway account
 ### The Three Components
 
 **1. The Page**
-A self-hostable React/Vite application that developers deploy as their supporter landing page. Shows their identity, lets supporters pick an amount, and hands off to the configured payment gateway. Also includes a Setup Wizard for 0-code configuration.
+A self-hostable React/Vite application that developers deploy as their narrative supporter page. It uses a storytelling layout to sell a mission, not just a transaction. Includes a protected Setup Wizard for 0-code configuration.
 
 **2. The Badge**
 A single SVG file and a markdown/HTML snippet. Developers paste one line into their README or LinkedIn. Points to their deployed page URL.
@@ -105,29 +105,26 @@ A clean integration contract (`gateway.md`) that defines exactly how any payment
 
 MVP is the smallest thing that proves the end-to-end flow works and can be put in front of a real developer.
 
-### What MVP includes
+### What V1 (Current) includes
 
 | Component | Detail |
 |---|---|
-| Supporter page | React + Vite SPA. Includes robust dark mode and smooth animations. |
-| Setup Wizard | In-app visual generator at `/#setup` to create the configuration file without coding. |
-| Profile block | Name, avatar (URL or local), short bio |
-| Social links | GitHub, Twitter/X, LinkedIn, personal website |
-| Support button | Presets + Custom amounts + Gateway-specific action button |
-| Payment gateway | Razorpay AND Dodo Payments fully integrated. Client-side checkout, public key only. |
+| Narrative UI | 2-column editorial layout with Story, Gallery, and Pinned Projects. |
+| Dual Currency | Real-time USD/INR toggle with exchange rate handling and local formatting. |
+| Protected Setup | Password-gated wizard (`/#setup?key=...`) with "Setup Lockdown" feature. |
+| Profile block | High-res avatar, Name, bold Bio, and Social links. |
+| Support Menu | Refined overlay with presets, custom amounts, and currency swapping. |
+| Payment gateway | Razorpay AND Dodo Payments fully integrated. Client-side checkout. |
 | Thank-you | Custom animated thank-you section post-payment. |
 | Badge | High fidelity, realistic Chai glass SVG + markdown snippet |
-| Config | `chai.config.js` — single file |
-| Deployment | Works on GitHub Pages, Vercel, Netlify (static) |
-| Docs | `gateway.md` — full contract + Razorpay reference + Dodo example + AI prompt |
+| Config | `chai.config.js` — single file controlling everything. |
+| Deployment | Fully static. Works on Vercel, GitHub Pages, Netlify. |
 
-### What MVP explicitly excludes
+### What is explicitly excluded
 
-- Any backend / serverless function
-- Analytics, payment history
-- Project showcase section
-- Color theme picker
-- Multi-language support
+- Any backend / serverless function (maintaining zero-infra cost)
+- Analytics / Payment history (respecting privacy & static nature)
+- Multi-language support (English only for now)
 
 ### MVP success criteria
 A developer who has never seen this project before can:
@@ -340,10 +337,10 @@ The page is intentionally minimal. Improvements welcome if they don't increase c
 
 | Version | Focus | Status |
 |---|---|---|
-| MVP | React rewrite, Setup Wizard, Razorpay + Dodo, Dark Mode | **Complete** |
-| V1 | Projects showcase, color theme picker | Planned |
-| V2 | More gateways (PayPal, Cashfree, Lemonsqueezy), recurring support | Future |
-| V3 | Analytics (self-hosted, no tracking) + multi-language | Future |
+| MVP | React rewrite, Setup Wizard, Razorpay + Dodo | **Complete** |
+| V1 | Narrative UI, Dual-Currency, Gallery, Project Pinning, Setup Security | **Complete** |
+| V2 | Color theme picker, more gateways (PayPal, Cashfree) | Planned |
+| V3 | Multi-language support, custom badge generator | Future |
 
 ---
 

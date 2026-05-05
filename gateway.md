@@ -66,7 +66,7 @@ Rule 4 — Return a proper Promise.
 The page uses await initPayment(...) and expects a Promise. Resolve it when payment succeeds. Reject it when payment fails or the user cancels. Handle all internal error states before rejecting — do not let raw gateway errors bubble up to the page.
 
 Rule 5 — Amount in smallest currency unit.
-Always pass amount in paise for INR (100 paise = ₹1). So ₹50 = 5000. This matches how every gateway API works. chai.config.js stores amount in paise so you pass it directly without converting.
+Always pass amount in the smallest currency unit (paise for INR, cents for USD). The `initPayment` function receives this calculated amount from the UI, so you pass it directly to the gateway's API.
 
 Rule 6 — No side effects.
 Do not write to localStorage, cookies, or any external analytics service. Do not log payment details to the console in production.
@@ -99,9 +99,12 @@ A Razorpay account at razorpay.com. Your Key ID from Dashboard → Settings → 
 
 ```javascript
 gateway: "razorpay",
-gatewayKey: "rzp_test_XXXXXXXXXXXX",   // Key ID only, never the secret
-amount: 5000,                           // in paise — 5000 = ₹50
+gatewayKey: "rzp_live_XXXXXXXXXXXX",   // Key ID only, never the secret
 currency: "INR",
+displayCurrency: "USD",
+exchangeRate: 83.5,
+suggestedAmounts: [2, 5, 10, 25],      // Amounts in displayCurrency (USD)
+defaultAmount: 5,                      // Default in USD
 ```
 
 ### How It Works in Plain English
@@ -234,8 +237,9 @@ A Dodo Payments account at dodopayments.com. Create a product in the dashboard (
 ```javascript
 gateway: "dodo",
 gatewayKey: "prod_XXXXXXXXXXXX",   // your Dodo Product ID
-currency: "USD",                    // Dodo works best for international
-// amount is set in the Dodo dashboard, not here
+currency: "USD",
+displayCurrency: "INR",
+exchangeRate: 83.5,
 ```
 
 ### How It Works in Plain English
