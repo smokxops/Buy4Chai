@@ -20,12 +20,6 @@ export async function initPayment(amount, config) {
   // Wrap Razorpay's callback-based API in a Promise for async/await usage
   return new Promise((resolve, reject) => {
 
-    // Sandbox bypass: Resolve immediately if a test key is detected
-    if (config.gatewayKey.startsWith("rzp_test_")) {
-      setTimeout(() => resolve({ razorpay_payment_id: "pay_dummy_123" }), 1500);
-      return;
-    }
-
     const options = {
       key: config.gatewayKey,        // Public API Key (Client-side)
       amount: amount,                 
@@ -40,6 +34,13 @@ export async function initPayment(amount, config) {
       // Success Handler: Triggered by Razorpay on successful transaction
       handler: function(response) {
         resolve(response);
+      },
+
+      prefill: {
+        name: config.name,
+        // email and contact are not typically in chai.config.js, but could be added by user
+        email: config.email || "",
+        contact: config.contact || ""
       },
 
       theme: {
