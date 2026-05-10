@@ -389,10 +389,10 @@ function CustomizeStep({ data, set, errors }) {
 
       <Field label="Exchange Rate" required error={errors.exchangeRate} hint={`1 ${data.displayCurrency} = X ${data.currency}`}>
         <Input
-          type="number"
           value={data.exchangeRate}
           onChange={v => {
-            const parsed = parseFloat(v);
+            const clean = v.replace(/,/g, '');
+            const parsed = parseFloat(clean);
             if (Number.isFinite(parsed)) {
               set('exchangeRate', parsed);
             } else if (v === '') {
@@ -405,12 +405,24 @@ function CustomizeStep({ data, set, errors }) {
 
       <Field label="Suggested Amounts (USD)" required error={errors.suggestedAmounts} hint="Comma-separated values in USD.">
         <Input value={data.suggestedAmounts.join(', ')}
-          onChange={v => set('suggestedAmounts', v.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n)))}
+          onChange={v => set('suggestedAmounts', v.split(',').map(s => parseFloat(s.replace(/,/g, '').trim())).filter(n => !isNaN(n)))}
           placeholder="2, 5, 10, 25"/>
       </Field>
 
       <Field label="Default Amount (USD)">
-        <Input type="number" value={data.defaultAmount} onChange={v => set('defaultAmount', parseFloat(v))} placeholder="5"/>
+        <Input
+          value={data.defaultAmount}
+          onChange={v => {
+            const clean = v.replace(/,/g, '');
+            const parsed = parseFloat(clean);
+            if (Number.isFinite(parsed)) {
+              set('defaultAmount', parsed);
+            } else if (v === '') {
+              set('defaultAmount', '');
+            }
+          }}
+          placeholder="5"
+        />
       </Field>
 
       <Field label="Thank You Message">

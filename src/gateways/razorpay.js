@@ -85,54 +85,72 @@ function loadScript(src, timeoutMs = 15000) {
   return new Promise((resolve, reject) => {
     // Prevent duplicate script injection
     const existingScript = document.querySelector(`script[src="${src}"]`);
+
+    let settled = false;
+    let timeout;
+    let script = null;
+
+    function onScriptLoad() {
+      if (!settled) {
+        settled = true;
+        if (timeout) clearTimeout(timeout);
+        resolve();
+      }
+    }
+
+    function onScriptError() {
+      if (!settled) {
+        settled = true;
+        if (timeout) clearTimeout(timeout);
+        cleanup();
+        reject(new Error(`Failed to load: ${src}`));
+      }
+    }
+
+    function cleanup() {
+      if (script) {
+        script.onload = null;
+        script.onerror = null;
+      }
+    }
+
     if (existingScript) {
-      // If it's already finished loading, resolve.
-      // If it's still loading, we should ideally wait for it,
-      // but for Razorpay, it's safer to just assume it's coming or re-check.
-      // Simple approach: if it exists, it's either loaded or loading.
-      resolve();
+      // SDK might be loading or already loaded.
+      if (window.Razorpay) {
+        resolve();
+      } else {
+        // Wire into the existing script's events
+        existingScript.addEventListener('load', onScriptLoad, { once: true });
+        existingScript.addEventListener('error', onScriptError, { once: true });
+
+        // Safety timeout for the existing script too
+        timeout = setTimeout(() => {
+          if (!settled) {
+            settled = true;
+            existingScript.removeEventListener('load', onScriptLoad);
+            existingScript.removeEventListener('error', onScriptError);
+            reject(new Error(`Loading existing script timed out: ${src}`));
+          }
+        }, timeoutMs);
+      }
       return;
     }
 
-    let settled = false;
-    const script = document.createElement("script");
+    script = document.createElement("script");
     script.src = src;
 
-    const timeout = setTimeout(() => {
+    timeout = setTimeout(() => {
       if (!settled) {
         settled = true;
         cleanup();
+        if (script.parentNode) script.parentNode.removeChild(script);
         reject(new Error(`Loading script timed out: ${src}`));
       }
     }, timeoutMs);
 
-    function cleanup() {
-      script.onload = null;
-      script.onerror = null;
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
-    }
-
-    script.onload = () => {
-      if (!settled) {
-        settled = true;
-        clearTimeout(timeout);
-        resolve();
-      }
-    };
-
-    script.onerror = () => {
-      if (!settled) {
-        settled = true;
-        clearTimeout(timeout);
-        cleanup();
-        reject(new Error(`Failed to load: ${src}`));
-      }
-    };
+    script.onload = onScriptLoad;
+    script.onerror = onScriptError;
 
     document.body.appendChild(script);
   });
 }
-
-
