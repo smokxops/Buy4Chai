@@ -41,6 +41,7 @@ export default function SupporterPage({ dark, toggleDark }) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [showUPIQR, setShowUPIQR] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [error, setError] = useState('');
 
   const exchangeRate = config.exchangeRate || 80;
@@ -56,13 +57,22 @@ export default function SupporterPage({ dark, toggleDark }) {
   // Derived amount based on preset selection or custom input (always in USD internally)
   const displayAmountUSD = parseFloat(isCustomMode ? custom : selected) || 0;
 
-  // Lifecycle: Detect return from external payment gateways (e.g. Dodo)
+  // Lifecycle: Detect return from external payment gateways (e.g. Dodo) and device type
   useEffect(() => {
+    // Detect mobile device
+    const checkMobile = () => {
+      setIsMobile(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
     if (config.gateway === 'dodo') {
       const status = checkDodoReturn();
       if (status === 'success') setSuccess(true);
       if (status === 'failed')  setError('Payment did not go through. Please try again.');
     }
+
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const selectPreset = (amt) => { setSelected(amt); setCustom(''); setError(''); setIsCustomMode(false); setShowUPIQR(false); };
@@ -360,14 +370,24 @@ export default function SupporterPage({ dark, toggleDark }) {
                     >
                       Go Back
                     </button>
-                    {/* On Mobile, provide a direct link to open the app */}
-                    <a
-                      href={getUPIUrl(amtPrimary, config)}
-                      className="flex-1 bg-chai-500 text-white py-4 rounded-2xl text-sm font-black transition-all text-center flex items-center justify-center gap-2 hover:bg-chai-600 shadow-lg shadow-chai-500/20"
-                    >
-                      <Zap size={16} className="fill-white" />
-                      Open UPI App
-                    </a>
+                    {/* On Mobile, provide a direct link to open the app. On Desktop, show Done. */}
+                    {isMobile ? (
+                      <a
+                        href={getUPIUrl(amtPrimary, config)}
+                        className="flex-1 bg-chai-500 text-white py-4 rounded-2xl text-sm font-black transition-all text-center flex items-center justify-center gap-2 hover:bg-chai-600 shadow-lg shadow-chai-500/20"
+                      >
+                        <Zap size={16} className="fill-white" />
+                        Open UPI App
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => { setSuccess(true); setShowPayment(false); setShowUPIQR(false); }}
+                        className="flex-1 bg-chai-500 text-white py-4 rounded-2xl text-sm font-black transition-all text-center flex items-center justify-center gap-2 hover:bg-chai-600 shadow-lg shadow-chai-500/20"
+                      >
+                        <Check size={16} />
+                        I've Paid
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               ) : (

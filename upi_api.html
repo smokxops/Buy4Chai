@@ -113,11 +113,11 @@
             const pa = document.getElementById('pa').value;
             const pn = document.getElementById('pn').value;
             const am = document.getElementById('am').value;
-            
+
             let url = window.location.origin + window.location.pathname + `?pa=${pa}`;
             if (pn) url += `&pn=${pn}`;
             if (am) url += `&am=${am}`;
-            
+
             document.getElementById('result-link').innerHTML = `Direct Image URL:<br><a href="${url}">${url}</a>`;
             window.location.href = url;
         }

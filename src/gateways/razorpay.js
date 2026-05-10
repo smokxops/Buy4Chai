@@ -13,19 +13,21 @@ export const gatewayCapabilities = {
  */
 export async function initPayment(amount, config) {
 
+  // Sandbox bypass: Resolve immediately if the default dummy key is detected.
+  // This allows automated testing and UX previews without a real Razorpay account.
+  // Checked before loading the external SDK so it works offline/in blocked environments.
+  if (config.gatewayKey === "rzp_test_XXXXXXXXXXXX") {
+    return new Promise((resolve) => {
+      setTimeout(() => resolve({ razorpay_payment_id: "pay_dummy_123" }), 1500);
+    });
+  }
+
   // Dynamically load Razorpay SDK only when needed
   // Injects a script tag and waits for it to load.
   await loadScript("https://checkout.razorpay.com/v1/checkout.js");
 
   // Wrap Razorpay's callback-based API in a Promise for async/await usage
   return new Promise((resolve, reject) => {
-
-    // Sandbox bypass: Resolve immediately if a test key is detected
-    if (config.gatewayKey.startsWith("rzp_test_")) {
-      setTimeout(() => resolve({ razorpay_payment_id: "pay_dummy_123" }), 1500);
-      return;
-    }
-
     const options = {
       key: config.gatewayKey,        // Public API Key (Client-side)
       amount: amount,                 
@@ -42,6 +44,13 @@ export async function initPayment(amount, config) {
         resolve(response);
       },
 
+      prefill: {
+        name: config.name,
+        // email and contact are not typically in chai.config.js, but could be added by user
+        email: config.email || "",
+        contact: config.contact || ""
+      },
+
       theme: {
         color: config.accentColor || "#1D9E75",
       },
@@ -54,34 +63,94 @@ export async function initPayment(amount, config) {
       },
     };
 
-    const rzp = new window.Razorpay(options);
+    try {
+      const rzp = new window.Razorpay(options);
 
-    rzp.on("payment.failed", function(response) {
-      reject(new Error(response.error.description || "Payment failed"));
-    });
+      rzp.on("payment.failed", function(response) {
+        reject(new Error(response.error.description || "Payment failed"));
+      });
 
-    rzp.open();
+      rzp.open();
+    } catch (err) {
+      reject(new Error(err.message || "Failed to initialize Razorpay checkout"));
+    }
   });
 }
 
 /**
- * Injects a script tag and waits for load/error events
+ * Injects a script tag and waits for load/error events with a timeout.
  * Returns immediately if already present on the page.
- * Copy this into any new gateway that needs to load an SDK.
  */
-function loadScript(src) {
+function loadScript(src, timeoutMs = 15000) {
   return new Promise((resolve, reject) => {
     // Prevent duplicate script injection
-    if (document.querySelector(`script[src="${src}"]`)) {
-      resolve();
+    const existingScript = document.querySelector(`script[src="${src}"]`);
+
+    let settled = false;
+    let timeout;
+    let script = null;
+
+    function onScriptLoad() {
+      if (!settled) {
+        settled = true;
+        if (timeout) clearTimeout(timeout);
+        resolve();
+      }
+    }
+
+    function onScriptError() {
+      if (!settled) {
+        settled = true;
+        if (timeout) clearTimeout(timeout);
+        cleanup();
+        reject(new Error(`Failed to load: ${src}`));
+      }
+    }
+
+    function cleanup() {
+      if (script) {
+        script.onload = null;
+        script.onerror = null;
+      }
+    }
+
+    if (existingScript) {
+      // SDK might be loading or already loaded.
+      if (window.Razorpay) {
+        resolve();
+      } else {
+        // Wire into the existing script's events
+        existingScript.addEventListener('load', onScriptLoad, { once: true });
+        existingScript.addEventListener('error', onScriptError, { once: true });
+
+        // Safety timeout for the existing script too
+        timeout = setTimeout(() => {
+          if (!settled) {
+            settled = true;
+            existingScript.removeEventListener('load', onScriptLoad);
+            existingScript.removeEventListener('error', onScriptError);
+            reject(new Error(`Loading existing script timed out: ${src}`));
+          }
+        }, timeoutMs);
+      }
       return;
     }
-    const script = document.createElement("script");
+
+    script = document.createElement("script");
     script.src = src;
-    script.onload = resolve;
-    script.onerror = () => reject(new Error(`Failed to load: ${src}`));
+
+    timeout = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        cleanup();
+        if (script.parentNode) script.parentNode.removeChild(script);
+        reject(new Error(`Loading script timed out: ${src}`));
+      }
+    }, timeoutMs);
+
+    script.onload = onScriptLoad;
+    script.onerror = onScriptError;
+
     document.body.appendChild(script);
   });
 }
-
-
