@@ -48,8 +48,7 @@ export default {
    * IMPORTANT: Use PUBLIC Keys only.
    * This file is visible to everyone once deployed.
    */
-  //test key generated and added for testing only
-  gatewayKey: "rzp_test_SnKs9y6JbUOOdM", 
+  gatewayKey: "rzp_test_XXXXXXXXXXXX",
 
   // Required ONLY if gateway is "manual-links"
   // Map your native currency amounts (e.g., INR) to payment links from your dashboard

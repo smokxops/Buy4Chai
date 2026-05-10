@@ -13,20 +13,21 @@ export const gatewayCapabilities = {
  */
 export async function initPayment(amount, config) {
 
+  // Sandbox bypass: Resolve immediately if the default dummy key is detected.
+  // This allows automated testing and UX previews without a real Razorpay account.
+  // Checked before loading the external SDK so it works offline/in blocked environments.
+  if (config.gatewayKey === "rzp_test_XXXXXXXXXXXX") {
+    return new Promise((resolve) => {
+      setTimeout(() => resolve({ razorpay_payment_id: "pay_dummy_123" }), 1500);
+    });
+  }
+
   // Dynamically load Razorpay SDK only when needed
   // Injects a script tag and waits for it to load.
   await loadScript("https://checkout.razorpay.com/v1/checkout.js");
 
   // Wrap Razorpay's callback-based API in a Promise for async/await usage
   return new Promise((resolve, reject) => {
-
-    // Sandbox bypass: Resolve immediately if the default dummy key is detected.
-    // This allows automated testing and UX previews without a real Razorpay account.
-    if (config.gatewayKey === "rzp_test_XXXXXXXXXXXX") {
-      setTimeout(() => resolve({ razorpay_payment_id: "pay_dummy_123" }), 1500);
-      return;
-    }
-
     const options = {
       key: config.gatewayKey,        // Public API Key (Client-side)
       amount: amount,                 
@@ -77,21 +78,59 @@ export async function initPayment(amount, config) {
 }
 
 /**
- * Injects a script tag and waits for load/error events
+ * Injects a script tag and waits for load/error events with a timeout.
  * Returns immediately if already present on the page.
- * Copy this into any new gateway that needs to load an SDK.
  */
-function loadScript(src) {
+function loadScript(src, timeoutMs = 15000) {
   return new Promise((resolve, reject) => {
     // Prevent duplicate script injection
-    if (document.querySelector(`script[src="${src}"]`)) {
+    const existingScript = document.querySelector(`script[src="${src}"]`);
+    if (existingScript) {
+      // If it's already finished loading, resolve.
+      // If it's still loading, we should ideally wait for it,
+      // but for Razorpay, it's safer to just assume it's coming or re-check.
+      // Simple approach: if it exists, it's either loaded or loading.
       resolve();
       return;
     }
+
+    let settled = false;
     const script = document.createElement("script");
     script.src = src;
-    script.onload = resolve;
-    script.onerror = () => reject(new Error(`Failed to load: ${src}`));
+
+    const timeout = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        cleanup();
+        reject(new Error(`Loading script timed out: ${src}`));
+      }
+    }, timeoutMs);
+
+    function cleanup() {
+      script.onload = null;
+      script.onerror = null;
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    }
+
+    script.onload = () => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timeout);
+        resolve();
+      }
+    };
+
+    script.onerror = () => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timeout);
+        cleanup();
+        reject(new Error(`Failed to load: ${src}`));
+      }
+    };
+
     document.body.appendChild(script);
   });
 }
