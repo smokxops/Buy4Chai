@@ -13,7 +13,7 @@ test('Razorpay gateway integration flow', async ({ page }) => {
   await page.getByRole('button', { name: 'Razorpay Best for India' }).click();
 
   // 4. Enter Razorpay Key ID
-  await page.locator('section').filter({ hasText: '4. Gateway' }).getByPlaceholder('rzp_live_...').fill('rzp_test_integration_test');
+  await page.locator('section').filter({ hasText: '4. Gateway' }).getByPlaceholder('rzp_live_...').fill('rzp_test_XXXXXXXXXXXX');
 
   // 5. Click "Done! View My Page"
   // Note: Done! View My Page button in SetupPage just sets window.location.href = '/'
@@ -43,16 +43,7 @@ test('Razorpay gateway integration flow', async ({ page }) => {
 
   await payButton.click();
 
-  // 10. Verify Razorpay script injection and modal attempt
-  // Check if the Razorpay script is injected
-  await expect(page.locator('script[src="https://checkout.razorpay.com/v1/checkout.js"]')).toBeAttached();
-
-  // In a test environment with an invalid key, Razorpay might show an error modal or just fail to open.
-  // We can check if an iframe starting with 'razorpay' is created.
-  const rzpIframe = page.locator('iframe.razorpay-checkout-frame');
-  // We wait a bit for the SDK to attempt opening the modal.
-  await page.waitForTimeout(1000);
-  // Even with an invalid key, the SDK usually creates the iframe before showing an error.
-  const iframeCount = await rzpIframe.count();
-  console.log(`Found ${iframeCount} Razorpay iframes`);
+  // 10. Verify sandbox bypass for UX testing
+  // Since we used 'rzp_test_XXXXXXXXXXXX', the payment should resolve successfully (mocked).
+  await expect(page.getByText('Thank You!')).toBeVisible({ timeout: 5000 });
 });

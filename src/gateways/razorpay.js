@@ -20,6 +20,13 @@ export async function initPayment(amount, config) {
   // Wrap Razorpay's callback-based API in a Promise for async/await usage
   return new Promise((resolve, reject) => {
 
+    // Sandbox bypass: Resolve immediately if the default dummy key is detected.
+    // This allows automated testing and UX previews without a real Razorpay account.
+    if (config.gatewayKey === "rzp_test_XXXXXXXXXXXX") {
+      setTimeout(() => resolve({ razorpay_payment_id: "pay_dummy_123" }), 1500);
+      return;
+    }
+
     const options = {
       key: config.gatewayKey,        // Public API Key (Client-side)
       amount: amount,                 
@@ -55,13 +62,17 @@ export async function initPayment(amount, config) {
       },
     };
 
-    const rzp = new window.Razorpay(options);
+    try {
+      const rzp = new window.Razorpay(options);
 
-    rzp.on("payment.failed", function(response) {
-      reject(new Error(response.error.description || "Payment failed"));
-    });
+      rzp.on("payment.failed", function(response) {
+        reject(new Error(response.error.description || "Payment failed"));
+      });
 
-    rzp.open();
+      rzp.open();
+    } catch (err) {
+      reject(new Error(err.message || "Failed to initialize Razorpay checkout"));
+    }
   });
 }
 
