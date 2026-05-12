@@ -119,6 +119,6 @@ Built with **React 18, Vite, Tailwind CSS, and Framer Motion**.
 ---
 
 <div align="center">
-  <p>Built for the Indian Open Source Community 🇮🇳</p>
+  <p>Built for the Open Source Community 🇮🇳</p>
   <p><i>If this helps you, consider giving it a ⭐</i></p>
 </div>
