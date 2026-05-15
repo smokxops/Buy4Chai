@@ -108,6 +108,85 @@ Want to add a gateway that isn't supported yet? You can use an AI agent (like An
 
 ---
 
+## 🤖 AI-Powered Setup — Let AI Build Your Page For You
+
+Don't want to fill the config manually? Hand this prompt to any 
+AI agent — Claude, Copilot, Cursor, Jules, whatever you use.
+
+**Step 1:** Fork the repo and open it in your AI agent.
+
+**Step 2:** Copy your profile content from wherever you exist 
+online — GitHub, LinkedIn, Twitter, your personal site, anywhere. 
+Just paste the text content directly into the chat with the prompt 
+below. No links needed, the AI doesn't need to browse the web.
+
+**Step 3:** Paste this prompt followed by your copied content:
+
+---
+
+I want to set up my Buy4Chai supporter page. 
+I've pasted my profile content below from my online profiles.
+
+Please do the following:
+
+1. Read through everything I've pasted and extract the following:
+   - My name
+   - A short bio (one or two lines, friendly and human)
+   - My avatar/profile image if mentioned or linked
+   - My social links (GitHub, LinkedIn, Twitter, website — 
+     whatever is present)
+   - My best projects worth pinning — name, description, link, 
+     and preview image if available
+
+2. Before writing anything, show me what you found and confirm 
+   with me:
+   - Which projects should be pinned and in what order?
+   - Is the bio accurate or should it be reworded?
+   - Ask me if I have a profile photo or avatar I want to use — 
+     I can paste a URL or upload an image directly
+   - Ask me if I have any gallery images I want to show 
+     (workspace photos, project screenshots, anything visual)
+   - Ask me what thank you message I want supporters to see 
+     after they pay
+
+3. Once I've confirmed everything, write it all to 
+   chai.config.js only. Do not touch any other file.
+   The structure of chai.config.js is already in the repo — 
+   follow it exactly, just fill in my real values.
+
+4. Rename the personal badge in public/badges/personal.svg — 
+   replace the placeholder name with my actual name.
+
+5. Once done, verify the full flow:
+   - Does the page load correctly?
+   - Does the payment modal open?
+   - Does the thank you screen appear on success?
+
+6. Give me a clean summary of everything that was added and 
+   what my next step is to deploy.
+
+Important rules you must follow:
+- Only edit chai.config.js and the personal badge — nothing else
+- Never ask for or use a secret or private key
+- If any information is missing from what I pasted, ask me 
+  directly rather than guessing or making something up
+- Always confirm with me before writing anything to any file
+- Do not assume I use any specific platform — work with 
+  whatever content I provide
+
+---
+
+[PASTE YOUR PROFILE CONTENT HERE — from any platform, 
+any format, just copy and paste the text]
+
+---
+
+**Step 4:** Answer the agent's questions, confirm your config, deploy.
+
+That's it. Your page is ready.
+
+---
+
 ## 🏗️ Architecture
 
 Built with **React 18, Vite, Tailwind CSS, and Framer Motion**.
