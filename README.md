@@ -64,9 +64,9 @@ Sharing a UPI ID in a README feels "janky." Using PayPal involves massive fees. 
 
 Watch the walkthrough video to see the setup wizard and supporter payment flow in action:
 
-[![Watch Tutorial Walkthrough](https://raw.githubusercontent.com/vassu-v/Buy4Chai/improvements-adding-tut-and-badges/screenshots/dark_mode.jpg)](https://github.com/vassu-v/Buy4Chai/blob/improvements-adding-tut-and-badges/complete.mp4)
+[![Watch Tutorial Walkthrough](https://raw.githubusercontent.com/vassu-v/Buy4Chai/improvements-adding-tut-and-badges/screenshots/dark_mode.jpg)](https://buy4-chai.vercel.app/complete.mp4)
 
-*👉 **[Click here to watch the tutorial video on GitHub](https://github.com/vassu-v/Buy4Chai/blob/improvements-adding-tut-and-badges/complete.mp4)** 🎥*
+*👉 **[Click here to watch the tutorial video](https://buy4-chai.vercel.app/complete.mp4)** 🎥*
 
 ---
 
