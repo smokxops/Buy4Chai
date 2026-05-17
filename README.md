@@ -12,6 +12,7 @@
   <p>
     <a href="https://buy4-chai.vercel.app/"><strong>View Demo</strong></a> •
     <a href="#-deployment-in-10-minutes"><strong>Deploy Yours</strong></a> •
+    <a href="#-tutorial"><strong>Watch Tutorial</strong></a> •
     <a href="master.md"><strong>The Manifesto</strong></a>
   </p>
 </div>
@@ -49,6 +50,16 @@ Sharing a UPI ID in a README feels "janky." Using PayPal involves massive fees. 
 | **Storytelling** | **Project Showcase** | **Dual Currency** |
 | :--- | :--- | :--- |
 | Build a narrative around your work. Let people know *why* they should support you. | Pin your best open-source projects with high-quality preview cards. | Automatic USD/INR conversion with a simple supporter-facing toggle. |
+
+---
+
+## 📹 Tutorial
+
+Watch the walkthrough video to see the setup wizard and supporter payment flow in action:
+
+<video src="complete.mp4" width="100%" controls="controls">
+  Your browser does not support the video tag. You can watch the tutorial video <a href="complete.mp4">here</a>.
+</video>
 
 ---
 
