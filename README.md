@@ -10,9 +10,17 @@
   </p>
 
   <p>
-    <a href="https://buy4-chai.vercel.app/"><strong>View Demo</strong></a> •
+    <a href="https://buy4chai-vassu-v.vercel.app/"><strong>View Demo</strong></a> •
+    <a href="https://buy4chai-vassu-v.vercel.app/"><strong>View Hosted Real Page</strong></a> •
     <a href="#-deployment-in-10-minutes"><strong>Deploy Yours</strong></a> •
+    <a href="#-tutorial"><strong>Watch Tutorial</strong></a> •
     <a href="master.md"><strong>The Manifesto</strong></a>
+  </p>
+
+  <p>
+    <a href="https://buy4chai-vassu-v.vercel.app/">
+      <img src="https://buy4chai-vassu-v.vercel.app/badges/personal.svg" alt="Support & Make Badge" />
+    </a>
   </p>
 </div>
 
@@ -49,6 +57,16 @@ Sharing a UPI ID in a README feels "janky." Using PayPal involves massive fees. 
 | **Storytelling** | **Project Showcase** | **Dual Currency** |
 | :--- | :--- | :--- |
 | Build a narrative around your work. Let people know *why* they should support you. | Pin your best open-source projects with high-quality preview cards. | Automatic USD/INR conversion with a simple supporter-facing toggle. |
+
+---
+
+## 📹 Tutorial
+
+Watch the walkthrough video to see the setup wizard and supporter payment flow in action:
+
+[![Watch Tutorial Walkthrough](https://raw.githubusercontent.com/vassu-v/Buy4Chai/improvements-adding-tut-and-badges/screenshots/dark_mode.jpg)](https://buy4-chai.vercel.app/complete.mp4)
+
+*👉 **[Click here to watch the tutorial video](https://buy4-chai.vercel.app/complete.mp4)** 🎥*
 
 ---
 
@@ -199,5 +217,10 @@ Built with **React 18, Vite, Tailwind CSS, and Framer Motion**.
 
 <div align="center">
   <p>Built for the Open Source Community 🇮🇳</p>
+  <p>
+    <a href="https://buy4chai-vassu-v.vercel.app/">
+      <img src="https://buy4chai-vassu-v.vercel.app/badges/personal.svg" alt="Support & Make Badge" />
+    </a>
+  </p>
   <p><i>If this helps you, consider giving it a ⭐</i></p>
 </div>
