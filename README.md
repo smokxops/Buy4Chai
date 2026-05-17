@@ -10,10 +10,17 @@
   </p>
 
   <p>
-    <a href="https://buy4-chai.vercel.app/"><strong>View Demo</strong></a> •
+    <a href="https://buy4chai-vassu-v.vercel.app/"><strong>View Demo</strong></a> •
+    <a href="https://buy4chai-vassu-v.vercel.app/"><strong>View Hosted Real Page</strong></a> •
     <a href="#-deployment-in-10-minutes"><strong>Deploy Yours</strong></a> •
     <a href="#-tutorial"><strong>Watch Tutorial</strong></a> •
     <a href="master.md"><strong>The Manifesto</strong></a>
+  </p>
+
+  <p>
+    <a href="https://buy4chai-vassu-v.vercel.app/">
+      <img src="https://buy4chai-vassu-v.vercel.app/badges/personal.svg" alt="Support & Make Badge" />
+    </a>
   </p>
 </div>
 
@@ -210,5 +217,10 @@ Built with **React 18, Vite, Tailwind CSS, and Framer Motion**.
 
 <div align="center">
   <p>Built for the Open Source Community 🇮🇳</p>
+  <p>
+    <a href="https://buy4chai-vassu-v.vercel.app/">
+      <img src="https://buy4chai-vassu-v.vercel.app/badges/personal.svg" alt="Support & Make Badge" />
+    </a>
+  </p>
   <p><i>If this helps you, consider giving it a ⭐</i></p>
 </div>
