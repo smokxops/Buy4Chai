@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/logo.svg" width="120" alt="Buy Me a Chai Logo" />
   <h1>Buy Me a Chai ☕</h1>
-  <p><strong>The narrative-driven, self-hosted supporter page for the modern Indian developer.</strong></p>
+  <p><strong>Your corner of the internet,for building, sharing, and getting supported.</strong></p>
 
   <p>
     <img src="https://img.shields.io/badge/Stack-React_|_Vite_|_Tailwind-blue?style=flat-square" alt="Stack" />
